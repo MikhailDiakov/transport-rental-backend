@@ -1,0 +1,74 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env/
+
+
+# Environment variables
+.env
+
+# FastAPI specific
+*.db
+*.sqlite3
+
+# Logs
+*.log
+
+# Django specific (if you are using parts of Django in your FastAPI project)
+*.log
+*.pot
+*.mo
+*.pyc
+
+# Coverage reports
+.coverage
+*.cover
+
+# pytest
+.cache/
+.pytest_cache
+
+# IDE specific files
+.vscode/
+.idea/
+
+# MyPy
+.mypy_cache/
+
+# Docker specific
+docker-compose.override.yml
+.docker/
+
+# Redis, Celery (if you use it in your project)
+celerybeat-schedule
+*.pid
+*.log
+
+# Postgres database files (if running locally)
+*.sql
+*.sqlite
+
+# Build folders
+build/
+dist/
+
+# Python Wheel
+*.whl
+
+# VSCode settings
+.vscode/
+
+# Django migrations
+*migrations/
+
+# GitHub Actions
+.github/
+
+# Django static files
+*static/
+*staticfiles/

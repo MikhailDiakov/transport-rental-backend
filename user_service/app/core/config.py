@@ -34,5 +34,8 @@ class Settings:
     SUPERADMIN_PASSWORD: str = os.getenv("SUPERADMIN_PASSWORD", "admin123")
     SUPERADMIN_EMAIL: str = os.getenv("SUPERADMIN_EMAIL", "admin@gmail.com")
 
+    # GRPC PORT
+    GRPC_PORT: int = os.getenv("GRPC_PORT_FOR_USER_SERVICE", 50051)
+
 
 settings = Settings()
