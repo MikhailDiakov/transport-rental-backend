@@ -4,6 +4,7 @@ import redis.asyncio as redis
 from app.api.v1 import users
 from app.api.v1.superadmin import users_by_admin as superadmin_users
 from app.core.config import settings
+from app.utils.kafka_producer import close_producer, get_kafka_producer, send_log
 from fastapi import FastAPI
 from fastapi_limiter import FastAPILimiter
 from starlette_exporter import PrometheusMiddleware, handle_metrics
@@ -15,7 +16,28 @@ async def lifespan(app: FastAPI):
         settings.REDIS_URL, encoding="utf-8", decode_responses=True
     )
     await FastAPILimiter.init(redis_connection)
+
+    await get_kafka_producer()
+
+    await send_log(
+        {
+            "service": "user_service",
+            "event": "startup",
+            "message": "User service started",
+        }
+    )
+
     yield
+
+    await send_log(
+        {
+            "service": "user_service",
+            "event": "shutdown",
+            "message": "User service stopped",
+        }
+    )
+
+    await close_producer()
 
 
 app = FastAPI(lifespan=lifespan)

@@ -37,5 +37,9 @@ class Settings:
     # GRPC PORT
     GRPC_PORT: int = os.getenv("GRPC_PORT_FOR_USER_SERVICE", 50051)
 
+    # KAFKA SETTINGS
+    KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
+    KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "logs")
+
 
 settings = Settings()

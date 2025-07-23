@@ -67,15 +67,26 @@ async def db_session_with_rollback():
             await transaction.rollback()
 
 
-@pytest_asyncio.fixture(scope="function")
+@pytest_asyncio.fixture(scope="function", autouse=True)
 async def mock_limiter(monkeypatch):
     monkeypatch.setattr("fastapi_limiter.FastAPILimiter.redis", AsyncMock())
     monkeypatch.setattr("fastapi_limiter.FastAPILimiter.identifier", AsyncMock())
     monkeypatch.setattr("fastapi_limiter.FastAPILimiter.http_callback", AsyncMock())
 
 
+@pytest_asyncio.fixture(scope="function", autouse=True)
+async def mock_kafka(monkeypatch):
+    mock_producer = AsyncMock()
+    monkeypatch.setattr(
+        "app.utils.kafka_producer.get_kafka_producer",
+        AsyncMock(return_value=mock_producer),
+    )
+    monkeypatch.setattr("app.utils.kafka_producer.send_log", AsyncMock())
+    monkeypatch.setattr("app.utils.kafka_producer.close_producer", AsyncMock())
+
+
 @pytest_asyncio.fixture(scope="function")
-async def client(db_session_with_rollback, mock_limiter):
+async def client(db_session_with_rollback):
     app.dependency_overrides[get_session] = lambda: db_session_with_rollback
 
     async with AsyncClient(
@@ -84,7 +95,7 @@ async def client(db_session_with_rollback, mock_limiter):
         yield ac
 
 
-async def get_authorized_client(username: str, password: str, db_session, mock_limiter):
+async def get_authorized_client(username: str, password: str, db_session):
     app.dependency_overrides[get_session] = lambda: db_session
 
     async with AsyncClient(
@@ -102,27 +113,26 @@ async def get_authorized_client(username: str, password: str, db_session, mock_l
 
 
 @pytest_asyncio.fixture(scope="function")
-async def client_user(db_session_with_rollback, mock_limiter):
+async def client_user(db_session_with_rollback):
     async for ac in get_authorized_client(
-        "clientuser", "client123#", db_session_with_rollback, mock_limiter
+        "clientuser", "client123#", db_session_with_rollback
     ):
         yield ac
 
 
 @pytest_asyncio.fixture(scope="function")
-async def admin_client(db_session_with_rollback, mock_limiter):
+async def admin_client(db_session_with_rollback):
     async for ac in get_authorized_client(
-        "adminka", "adminka", db_session_with_rollback, mock_limiter
+        "adminka", "adminka", db_session_with_rollback
     ):
         yield ac
 
 
 @pytest_asyncio.fixture(scope="function")
-async def super_admin_client(db_session_with_rollback, mock_limiter):
+async def super_admin_client(db_session_with_rollback):
     async for ac in get_authorized_client(
         settings.SUPERADMIN_LOGIN,
         settings.SUPERADMIN_PASSWORD,
         db_session_with_rollback,
-        mock_limiter,
     ):
         yield ac
