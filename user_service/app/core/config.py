@@ -39,7 +39,8 @@ class Settings:
 
     # KAFKA SETTINGS
     KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
-    KAFKA_TOPIC = os.getenv("KAFKA_TOPIC", "logs")
+    KAFKA_TOPIC_LOGS = os.getenv("KAFKA_TOPIC_LOGS", "logs")
+    KAFKA_TOPIC_NOTIFICATIONS = os.getenv("KAFKA_TOPIC_NOTIFICATIONS", "notifications")
 
 
 settings = Settings()

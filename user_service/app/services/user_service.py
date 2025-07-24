@@ -1,9 +1,16 @@
+import secrets
 from typing import Optional
 
 from app.core.hash import get_password_hash, verify_password
 from app.models.role import RoleEnum
 from app.models.user import User
-from app.utils.kafka_producer import send_log
+from app.utils.kafka_producer import send_log, send_notification_email
+from app.utils.redis_client import (
+    delete_token,
+    get_email_by_token,
+    is_reset_request_allowed,
+    set_token,
+)
 from app.utils.selectors.user import (
     get_user_by_email,
     get_user_by_id,
@@ -150,3 +157,62 @@ async def update_user_profile(
     log.update({"result": "success"})
     await send_log(log)
     return user
+
+
+async def request_password_reset(email: str, db: AsyncSession) -> None:
+    log = {
+        "service": SERVICE,
+        "event": "request_password_reset",
+        "email": email,
+    }
+
+    user = await get_user_by_email(db, email)
+    allowed = await is_reset_request_allowed(email)
+    if not allowed:
+        log.update({"result": "failure", "reason": "Too many requests"})
+        await send_log(log)
+        raise HTTPException(
+            status_code=429,
+            detail="You can request password reset only once per minute.",
+        )
+
+    if user:
+        code = secrets.token_urlsafe(24)
+        await set_token(email=email, token=code, ttl_seconds=900)
+
+        subject = "Your Password Reset Code"
+        body = f"Hello {user.username},\n\nYour password reset code is:\n{code}\n\nIt expires in 15 minutes."
+        await send_notification_email(to_email=email, subject=subject, body=body)
+
+        log.update({"result": "success", "user_id": user.id})
+    else:
+        log.update({"result": "ignored", "reason": "Email not registered"})
+
+    await send_log(log)
+
+
+async def reset_password(token: str, new_password: str, db: AsyncSession) -> None:
+    log = {
+        "service": SERVICE,
+        "event": "reset_password",
+        "token": token,
+    }
+
+    email = await get_email_by_token(token)
+    if not email:
+        log.update({"result": "failure", "reason": "Invalid or expired token"})
+        await send_log(log)
+        raise ValueError("Invalid or expired reset code")
+
+    user = await get_user_by_email(db, email)
+    if not user:
+        log.update({"result": "failure", "reason": "User not found"})
+        await send_log(log)
+        raise ValueError("User not found")
+
+    user.hashed_password = get_password_hash(new_password)
+    await db.commit()
+    await delete_token(token)
+
+    log.update({"result": "success", "user_id": user.id})
+    await send_log(log)

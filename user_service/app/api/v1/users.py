@@ -1,11 +1,19 @@
 from app.api.deps import get_current_user_info, get_session, limiter_dep
 from app.core.security import create_access_token
 from app.schemas.token import Token
-from app.schemas.user import UserCreate, UserProfileUpdate, UserRead
+from app.schemas.user import (
+    PasswordResetConfirm,
+    PasswordResetRequest,
+    UserCreate,
+    UserProfileUpdate,
+    UserRead,
+)
 from app.services.user_service import (
     authenticate_user,
     create_user,
     get_user_profile,
+    request_password_reset,
+    reset_password,
     update_user_profile,
 )
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -75,5 +83,30 @@ async def update_my_profile(
             confirm_password=data.confirm_password,
         )
         return user
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@router.post("/request-password-reset")
+async def request_reset_password(
+    data: PasswordResetRequest,
+    db: AsyncSession = Depends(get_session),
+):
+    await request_password_reset(email=data.email, db=db)
+    return {"message": "If the email exists, a reset link has been sent."}
+
+
+@router.post("/reset-password")
+async def confirm_password_reset(
+    data: PasswordResetConfirm,
+    db: AsyncSession = Depends(get_session),
+):
+    try:
+        await reset_password(
+            token=data.token,
+            new_password=data.new_password,
+            db=db,
+        )
+        return {"message": "Password reset successful"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
