@@ -22,6 +22,27 @@ services:
     networks:
       - backend
 
+  car_service:
+    build:
+      context: ./car_service
+      dockerfile: Dockerfile
+    container_name: car_service
+    env_file:
+      - .env
+    ports:
+      - "8001:8001"
+    volumes:
+      - ./car_service/app:/app/app
+      - ./car_service/scripts:/app/scripts
+      - ./car_service/alembic:/app/alembic
+      - ./car_service/alembic.ini:/app/alembic.ini
+    depends_on:
+      - elasticsearch
+      - kafka
+      - redis
+    networks:
+      - backend
+
   redis:
     image: redis:7-alpine
     container_name: user_service_redis
@@ -108,30 +129,31 @@ services:
       - kafka
     networks:
       - backend
-  # prometheus:
-  #   image: prom/prometheus:latest
-  #   container_name: prometheus
-  #   volumes:
-  #     - ./.monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-  #     - prometheus_data:/prometheus
-  #   ports:
-  #     - "9090:9090"
-  #   networks:
-  #     - backend
 
-  # grafana:
-  #   image: grafana/grafana:latest
-  #   container_name: grafana
-  #   environment:
-  #     - GF_SECURITY_ADMIN_PASSWORD=admin
-  #   ports:
-  #     - "3000:3000"
-  #   volumes:
-  #     - grafana_data:/var/lib/grafana
-  #   networks:
-  #     - backend
-  #   depends_on:
-  #     - prometheus
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./.monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    networks:
+      - backend
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - backend
+    depends_on:
+      - prometheus
 
 volumes:
   redis_data:
@@ -139,8 +161,8 @@ volumes:
   zookeeper_data:
   zookeeper_log:
   es_data:
-  # prometheus_data:
-  # grafana_data:
+  prometheus_data:
+  grafana_data:
 
 networks:
   backend:

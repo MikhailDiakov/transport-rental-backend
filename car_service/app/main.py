@@ -1,13 +1,9 @@
 import os
 from contextlib import asynccontextmanager
 
-import redis.asyncio as redis
-from app.api.v1 import users
-from app.api.v1.superadmin import users_by_admin as superadmin_users
-from app.core.config import settings
+from app.api.v1 import availability, cars
 from app.utils.kafka_producer import close_producer, get_kafka_producer, send_log
 from fastapi import FastAPI
-from fastapi_limiter import FastAPILimiter
 from starlette_exporter import PrometheusMiddleware, handle_metrics
 
 USE_KAFKA = os.getenv("USE_KAFKA", "true").lower() == "true"
@@ -15,18 +11,13 @@ USE_KAFKA = os.getenv("USE_KAFKA", "true").lower() == "true"
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    redis_connection = redis.from_url(
-        settings.REDIS_URL, encoding="utf-8", decode_responses=True
-    )
-    await FastAPILimiter.init(redis_connection)
-
     if USE_KAFKA:
         await get_kafka_producer()
         await send_log(
             {
-                "service": "user_service",
+                "service": "car_service",
                 "event": "startup",
-                "message": "User service started",
+                "message": "Car service started",
             }
         )
     else:
@@ -37,9 +28,9 @@ async def lifespan(app: FastAPI):
     if USE_KAFKA:
         await send_log(
             {
-                "service": "user_service",
+                "service": "car_service",
                 "event": "shutdown",
-                "message": "User service stopped",
+                "message": "Car service stopped",
             }
         )
         await close_producer()
@@ -50,7 +41,7 @@ app = FastAPI(lifespan=lifespan)
 app.add_middleware(PrometheusMiddleware)
 app.add_route("/metrics", handle_metrics)
 
-app.include_router(users.router, prefix="/users", tags=["users"])
+app.include_router(cars.router, prefix="/cars", tags=["cars"])
 app.include_router(
-    superadmin_users.router, prefix="/superadmin/users", tags=["superadmin-users"]
+    availability.router, prefix="/cars-availability", tags=["cars-availability"]
 )

@@ -18,22 +18,14 @@ class Settings:
     )
 
     # JWT
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = int(
-        os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60 * 24)
-    )
     SECRET_KEY: str = os.getenv("SECRET_KEY", "super-secret")
     ALGORITHM: str = os.getenv("ALGORITHM", "HS256")
 
     # Redis
     REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
-    # SuperAdmin
-    SUPERADMIN_LOGIN: str = os.getenv("SUPERADMIN_LOGIN", "admin123")
-    SUPERADMIN_PASSWORD: str = os.getenv("SUPERADMIN_PASSWORD", "admin123")
-    SUPERADMIN_EMAIL: str = os.getenv("SUPERADMIN_EMAIL", "admin@gmail.com")
-
     # GRPC PORT
-    GRPC_PORT: int = os.getenv("GRPC_PORT_FOR_USER_SERVICE", 50051)
+    GRPC_PORT: int = os.getenv("GRPC_PORT_FOR_CAR_SERVICE", 50052)
 
     # KAFKA SETTINGS
     KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")

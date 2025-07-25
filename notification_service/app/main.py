@@ -19,7 +19,13 @@ async def consume_notifications():
     )
 
     await consumer.start()
-    print("Notification service started, waiting for messages...")
+    await send_log(
+        {
+            "service": "notification_service",
+            "event": "service_start",
+            "message": "Notification service started, waiting for messages...",
+        }
+    )
     try:
         async for message in consumer:
             data = message.value
@@ -40,18 +46,16 @@ async def consume_notifications():
                         body=data.get("body", ""),
                     )
                     log = {**log_base, "result": "success"}
-                    await send_log(log)
+
                 except Exception as e:
                     log = {**log_base, "result": "failure", "reason": str(e)}
-                    await send_log(log)
             else:
-                print(f"Unknown notification type: {msg_type}")
                 log = {
                     **log_base,
                     "result": "failure",
                     "reason": f"Unknown notification type: {msg_type}",
                 }
-                await send_log(log)
+            await send_log(log)
     finally:
         await consumer.stop()
 

@@ -1,0 +1,69 @@
+services:
+  user_service:
+    build:
+      context: ./user_service
+      dockerfile: Dockerfile
+    container_name: user_service_dev
+    env_file:
+      - .env
+    environment:
+      - USE_KAFKA=false
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "8000:8000"
+      - "50051:50051"
+    volumes:
+      - ./user_service/app:/app/app
+      - ./user_service/scripts:/app/scripts
+      - ./user_service/alembic:/app/alembic
+      - ./user_service/alembic.ini:/app/alembic.ini
+    depends_on:
+      - redis
+    networks:
+      - backend
+    command: >
+      bash -c "/app/scripts/initialize.sh &&
+              supervisord -c /etc/supervisor/conf.d/supervisord.conf"
+
+  car_service:
+    build:
+      context: ./car_service
+      dockerfile: Dockerfile
+    container_name: car_service_dev
+    env_file:
+      - .env
+    environment:
+      - USE_KAFKA=false
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "8001:8001"
+      - "50052:50052"
+    volumes:
+      - ./car_service/app:/app/app
+      - ./car_service/scripts:/app/scripts
+      - ./car_service/alembic:/app/alembic
+      - ./car_service/alembic.ini:/app/alembic.ini
+    depends_on:
+      - redis
+    networks:
+      - backend
+    command: >
+      bash -c "/app/scripts/initialize.sh &&
+              supervisord -c /etc/supervisor/conf.d/supervisord.conf"
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis_dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data_dev:/data
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  redis_data_dev:
