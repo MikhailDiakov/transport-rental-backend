@@ -1,3 +1,5 @@
+from unittest.mock import AsyncMock, patch
+
 import pytest
 
 
@@ -119,3 +121,69 @@ async def test_login_invalid_cases(client, data, expected_status, expected_detai
     assert response.status_code == expected_status
     if expected_detail:
         assert response.json()["detail"] == expected_detail
+
+
+@pytest.mark.asyncio
+async def test_token_refresh_success(client):
+    token = "valid_refresh_token"
+    payload = {"id": "3", "role": "3"}
+
+    with (
+        patch("app.services.user_service.decode_refresh_token", return_value=payload),
+        patch(
+            "app.services.user_service.get_refresh_token", new_callable=AsyncMock
+        ) as mock_get_token,
+        patch(
+            "app.services.user_service.create_access_token",
+            return_value="new_access_token",
+        ),
+    ):
+        mock_get_token.return_value = token
+
+        client.cookies.set("refresh_token", token)
+        response = await client.post("/users/refresh")
+        assert response.status_code == 200, response.text
+        data = response.json()
+        assert data["access_token"] == "new_access_token"
+        assert data["token_type"] == "bearer"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    "cookie, decode_return, redis_token, expected_detail",
+    [
+        (None, None, None, "Missing refresh token"),
+        ("invalid_token", None, None, "Invalid refresh token"),
+        ("mismatch_token", {"id": "3", "role": "3"}, "another_token", "Token mismatch"),
+    ],
+)
+async def test_token_refresh_failures(
+    client, cookie, decode_return, redis_token, expected_detail
+):
+    with (
+        patch(
+            "app.services.user_service.decode_refresh_token", return_value=decode_return
+        ),
+        patch(
+            "app.services.user_service.get_refresh_token",
+            new_callable=AsyncMock,
+            return_value=redis_token,
+        ),
+    ):
+        if cookie:
+            client.cookies.set("refresh_token", cookie)
+        else:
+            client.cookies.clear()
+
+        response = await client.post("/users/refresh")
+        assert response.status_code == 401, response.text
+        assert expected_detail in response.text
+
+
+@pytest.mark.asyncio
+async def test_logout_user_success(super_admin_client):
+    with patch("app.utils.redis_client.delete_refresh_token", new_callable=AsyncMock):
+        response = await super_admin_client.post("/users/logout")
+        assert response.status_code == 200
+        assert response.json() == {"message": "Logged out"}
+        assert "refresh_token" not in response.cookies

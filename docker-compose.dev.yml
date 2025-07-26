@@ -7,7 +7,7 @@ services:
     env_file:
       - .env
     environment:
-      - USE_KAFKA=false
+      - IS_DEV_MODE=true
       - REDIS_URL=redis://redis:6379
     ports:
       - "8000:8000"
@@ -33,7 +33,7 @@ services:
     env_file:
       - .env
     environment:
-      - USE_KAFKA=false
+      - IS_DEV_MODE=true
       - REDIS_URL=redis://redis:6379
     ports:
       - "8001:8001"

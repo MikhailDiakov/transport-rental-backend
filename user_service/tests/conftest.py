@@ -59,23 +59,24 @@ async def prepare_database():
 async def db_session_with_rollback():
     async with engine.connect() as connection:
         async with connection.begin() as transaction:
-            async_session = async_sessionmaker(
-                bind=connection, class_=AsyncSession, expire_on_commit=False
-            )
-            async with async_session() as session:
+            async with TestingSessionLocal(bind=connection) as session:
                 yield session
             await transaction.rollback()
 
 
 @pytest_asyncio.fixture(scope="function", autouse=True)
-async def mock_limiter(monkeypatch):
+async def mock_external_dependencies(monkeypatch):
+    # Mock FastAPI Limiter
     monkeypatch.setattr("fastapi_limiter.FastAPILimiter.redis", AsyncMock())
     monkeypatch.setattr("fastapi_limiter.FastAPILimiter.identifier", AsyncMock())
     monkeypatch.setattr("fastapi_limiter.FastAPILimiter.http_callback", AsyncMock())
 
+    # Mock Redis Client
+    from app.utils import redis_client as redis_module
 
-@pytest_asyncio.fixture(scope="function", autouse=True)
-async def mock_kafka(monkeypatch):
+    monkeypatch.setattr(redis_module, "redis_client", AsyncMock())
+
+    # Mock Kafka Producer
     mock_producer = AsyncMock()
     monkeypatch.setattr(
         "app.utils.kafka_producer.get_kafka_producer",

@@ -34,3 +34,15 @@ async def is_reset_request_allowed(email: str) -> bool:
         return False
     await redis_client.set(key, "1", ex=60)
     return True
+
+
+async def store_refresh_token(user_id: int, token: str, ttl_seconds: int = 7 * 86400):
+    await redis_client.set(f"refresh:{user_id}", token, ex=ttl_seconds)
+
+
+async def get_refresh_token(user_id: int) -> str | None:
+    return await redis_client.get(f"refresh:{user_id}")
+
+
+async def delete_refresh_token(user_id: int):
+    await redis_client.delete(f"refresh:{user_id}")

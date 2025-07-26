@@ -1,5 +1,4 @@
 from app.api.deps import get_current_user_info, get_session, limiter_dep
-from app.core.security import create_access_token
 from app.schemas.token import Token
 from app.schemas.user import (
     PasswordResetConfirm,
@@ -9,14 +8,16 @@ from app.schemas.user import (
     UserRead,
 )
 from app.services.user_service import (
-    authenticate_user,
     create_user,
     get_user_profile,
+    login_user,
+    logout_user,
+    refresh_user_token,
     request_password_reset,
     reset_password,
     update_user_profile,
 )
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -37,26 +38,22 @@ async def register(
     return user
 
 
-@router.post(
-    "/login",
-    response_model=Token,
-    dependencies=[limiter_dep(5, 60)],
-)
+@router.post("/login", response_model=Token, dependencies=[limiter_dep(5, 60)])
 async def login(
     form_data: OAuth2PasswordRequestForm = Depends(),
     db: AsyncSession = Depends(get_session),
 ):
-    user = await authenticate_user(db, form_data.username, form_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect username or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    access_token = create_access_token(
-        data={"id": str(user.id), "role": str(user.role_id)}
-    )
-    return {"access_token": access_token, "token_type": "bearer"}
+    return await login_user(form_data, db)
+
+
+@router.post("/refresh", response_model=Token)
+async def refresh(request: Request):
+    return await refresh_user_token(request)
+
+
+@router.post("/logout")
+async def logout(current_user=Depends(get_current_user_info)):
+    return await logout_user(current_user["id"])
 
 
 @router.get("/me", response_model=UserRead)

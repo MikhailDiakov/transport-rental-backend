@@ -10,7 +10,7 @@ from fastapi import FastAPI
 from fastapi_limiter import FastAPILimiter
 from starlette_exporter import PrometheusMiddleware, handle_metrics
 
-USE_KAFKA = os.getenv("USE_KAFKA", "true").lower() == "true"
+IS_DEV_MODE = os.getenv("IS_DEV_MODE", "false").lower() == "true"
 
 
 @asynccontextmanager
@@ -20,7 +20,7 @@ async def lifespan(app: FastAPI):
     )
     await FastAPILimiter.init(redis_connection)
 
-    if USE_KAFKA:
+    if not IS_DEV_MODE:
         await get_kafka_producer()
         await send_log(
             {
@@ -30,11 +30,11 @@ async def lifespan(app: FastAPI):
             }
         )
     else:
-        print("Kafka disabled: skipping kafka initialization")
+        print("[DEV_MODE] Kafka is disabled")
 
     yield
 
-    if USE_KAFKA:
+    if not IS_DEV_MODE:
         await send_log(
             {
                 "service": "user_service",

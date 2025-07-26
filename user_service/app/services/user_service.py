@@ -2,21 +2,30 @@ import secrets
 from typing import Optional
 
 from app.core.hash import get_password_hash, verify_password
+from app.core.security import (
+    create_access_token,
+    create_refresh_token,
+    decode_refresh_token,
+)
 from app.models.role import RoleEnum
 from app.models.user import User
 from app.utils.kafka_producer import send_log, send_notification_email
 from app.utils.redis_client import (
+    delete_refresh_token,
     delete_token,
     get_email_by_token,
+    get_refresh_token,
     is_reset_request_allowed,
     set_token,
+    store_refresh_token,
 )
 from app.utils.selectors.user import (
     get_user_by_email,
     get_user_by_id,
     get_user_by_username,
 )
-from fastapi import HTTPException, status
+from fastapi import HTTPException, Request
+from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
 SERVICE = "user_service"
@@ -62,12 +71,12 @@ async def create_user(
     return user
 
 
-async def authenticate_user(
-    db: AsyncSession, username: str, password: str
-) -> Optional[User]:
+async def login_user(form_data, db: AsyncSession) -> JSONResponse:
+    username = form_data.username
+    password = form_data.password
     log = {
-        "service": SERVICE,
-        "event": "authenticate_user",
+        "service": "user_service",
+        "event": "login_user",
         "username": username,
     }
 
@@ -75,15 +84,28 @@ async def authenticate_user(
     if not user or not verify_password(password, user.hashed_password):
         log.update({"result": "failure", "reason": "Invalid credentials"})
         await send_log(log)
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    access_token = create_access_token({"id": str(user.id), "role": str(user.role_id)})
+    refresh_token = create_refresh_token({"id": str(user.id)})
+
+    await store_refresh_token(user.id, refresh_token)
 
     log.update({"result": "success", "user_id": user.id})
     await send_log(log)
-    return user
+
+    response = JSONResponse(
+        content={"access_token": access_token, "token_type": "bearer"}
+    )
+    response.set_cookie(
+        key="refresh_token",
+        value=refresh_token,
+        httponly=True,
+        samesite="lax",
+        secure=False,  # True in prod
+        max_age=7 * 86400,
+    )
+    return response
 
 
 async def get_user_profile(db: AsyncSession, user_id: int) -> User:
@@ -102,6 +124,60 @@ async def get_user_profile(db: AsyncSession, user_id: int) -> User:
     log.update({"result": "success"})
     await send_log(log)
     return user
+
+
+async def refresh_user_token(request: Request) -> dict:
+    log = {
+        "service": "user_service",
+        "event": "refresh_user_token",
+    }
+
+    token = request.cookies.get("refresh_token")
+    if not token:
+        log.update({"result": "failure", "reason": "Missing refresh token"})
+        await send_log(log)
+        raise HTTPException(status_code=401, detail="Missing refresh token")
+
+    payload = decode_refresh_token(token)
+    if not payload:
+        log.update({"result": "failure", "reason": "Invalid refresh token"})
+        await send_log(log)
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+
+    user_id = int(payload["id"])
+    stored_token = await get_refresh_token(user_id)
+    if stored_token != token:
+        log.update(
+            {"result": "failure", "reason": "Token mismatch", "user_id": user_id}
+        )
+        await send_log(log)
+        raise HTTPException(status_code=401, detail="Token mismatch")
+
+    access_token = create_access_token(
+        {"id": str(user_id), "role": str(payload.get("role", "1"))}
+    )
+
+    log.update({"result": "success", "user_id": user_id})
+    await send_log(log)
+
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+async def logout_user(user_id: int) -> JSONResponse:
+    log = {
+        "service": "user_service",
+        "event": "logout_user",
+        "user_id": user_id,
+    }
+
+    await delete_refresh_token(user_id)
+
+    log.update({"result": "success"})
+    await send_log(log)
+
+    response = JSONResponse(content={"message": "Logged out"})
+    response.delete_cookie("refresh_token")
+    return response
 
 
 async def update_user_profile(
