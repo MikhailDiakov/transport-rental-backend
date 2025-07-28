@@ -1,6 +1,7 @@
 import secrets
 from typing import Optional
 
+from app.core.config import settings
 from app.core.hash import get_password_hash, verify_password
 from app.core.security import (
     create_access_token,
@@ -28,7 +29,7 @@ from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from sqlalchemy.ext.asyncio import AsyncSession
 
-SERVICE = "user_service"
+SERVICE = settings.PROJECT_NAME
 
 
 async def create_user(

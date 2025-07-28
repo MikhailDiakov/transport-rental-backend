@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+from app.core.config import settings
 from app.models.availability import CarAvailability
 from app.utils.kafka_producer import send_log
 from app.utils.selectors.car import get_car_by_id
@@ -7,12 +8,14 @@ from fastapi import HTTPException
 from sqlalchemy import and_, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+SERVICE = settings.PROJECT_NAME
+
 
 async def create_availability(
     db: AsyncSession, data: dict, admin_id: int
 ) -> CarAvailability:
     log = {
-        "service": "car_service",
+        "service": SERVICE,
         "event": "create_availability",
         "admin_id": admin_id,
         "data": data,
@@ -74,7 +77,7 @@ async def get_availability(
     db: AsyncSession, availability_id: int, user_id: Optional[int] = None
 ) -> CarAvailability:
     log = {
-        "service": "car_service",
+        "service": SERVICE,
         "event": "get_availability",
         "availability_id": availability_id,
         "user_id": user_id,
@@ -97,7 +100,7 @@ async def list_availabilities(
     user_id: Optional[int] = None,
 ) -> List[CarAvailability]:
     log = {
-        "service": "car_service",
+        "service": SERVICE,
         "event": "list_availabilities",
         "skip": skip,
         "limit": limit,
@@ -122,7 +125,7 @@ async def update_availability(
     db: AsyncSession, availability_id: int, data: dict, admin_id: int
 ) -> CarAvailability:
     log = {
-        "service": "car_service",
+        "service": SERVICE,
         "event": "update_availability",
         "availability_id": availability_id,
         "admin_id": admin_id,
@@ -145,7 +148,7 @@ async def update_availability(
 
 async def delete_availability(db: AsyncSession, availability_id: int, admin_id: int):
     log = {
-        "service": "car_service",
+        "service": SERVICE,
         "event": "delete_availability",
         "availability_id": availability_id,
         "admin_id": admin_id,

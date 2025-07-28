@@ -81,3 +81,31 @@ async def test_is_reset_request_allowed_false(mock_redis):
 
     mock_redis.set.assert_not_called()
     assert allowed is False
+
+
+@pytest.mark.asyncio
+@patch("app.utils.redis_client.redis_client")
+async def test_store_refresh_token(mock_redis):
+    await rc.store_refresh_token(42, "refresh_token_abc", ttl_seconds=604800)
+    mock_redis.set.assert_awaited_once_with(
+        "refresh:42", "refresh_token_abc", ex=604800
+    )
+
+
+@pytest.mark.asyncio
+@patch("app.utils.redis_client.redis_client")
+async def test_get_refresh_token(mock_redis):
+    mock_redis.get.return_value = "refresh_token_abc"
+
+    result = await rc.get_refresh_token(42)
+
+    mock_redis.get.assert_awaited_once_with("refresh:42")
+    assert result == "refresh_token_abc"
+
+
+@pytest.mark.asyncio
+@patch("app.utils.redis_client.redis_client")
+async def test_delete_refresh_token(mock_redis):
+    await rc.delete_refresh_token(42)
+
+    mock_redis.delete.assert_awaited_once_with("refresh:42")

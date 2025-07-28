@@ -3,9 +3,11 @@ import json
 
 from aiokafka import AIOKafkaConsumer
 
-from .config import KAFKA_BOOTSTRAP_SERVERS, KAFKA_TOPIC
+from .config import KAFKA_BOOTSTRAP_SERVERS, KAFKA_TOPIC, PROJECT_NAME
 from .email_sender import send_email
 from .kafka import send_log
+
+SERVICE = PROJECT_NAME
 
 
 async def consume_notifications():
@@ -21,7 +23,7 @@ async def consume_notifications():
     await consumer.start()
     await send_log(
         {
-            "service": "notification_service",
+            "service": SERVICE,
             "event": "service_start",
             "message": "Notification service started, waiting for messages...",
         }
@@ -32,7 +34,7 @@ async def consume_notifications():
             msg_type = data.get("type")
 
             log_base = {
-                "service": "notification_service",
+                "service": SERVICE,
                 "event": "consume_notification",
                 "type": msg_type,
                 "to": data.get("to"),

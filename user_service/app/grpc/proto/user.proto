@@ -3,24 +3,16 @@ syntax = "proto3";
 package user;
 
 service UserService {
-  rpc ValidateToken (ValidateTokenRequest) returns (ValidateTokenResponse);
-
   rpc GetUserByToken (GetUserByTokenRequest) returns (UserResponse);
-}
-
-message ValidateTokenRequest {
-  string token = 1;
-}
-
-message ValidateTokenResponse {
-  bool is_valid = 1;
-  string error_message = 2;
-  int64 user_id = 3;
-  int32 role = 4;
+  rpc GetUserById (GetUserByIdRequest) returns (UserResponse);
 }
 
 message GetUserByTokenRequest {
   string token = 1;
+}
+
+message GetUserByIdRequest {
+  int64 user_id = 1;
 }
 
 message UserResponse {

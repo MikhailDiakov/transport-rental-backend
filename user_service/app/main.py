@@ -12,6 +12,8 @@ from starlette_exporter import PrometheusMiddleware, handle_metrics
 
 IS_DEV_MODE = os.getenv("IS_DEV_MODE", "false").lower() == "true"
 
+SERVICE = settings.PROJECT_NAME
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -24,7 +26,7 @@ async def lifespan(app: FastAPI):
         await get_kafka_producer()
         await send_log(
             {
-                "service": "user_service",
+                "service": SERVICE,
                 "event": "startup",
                 "message": "User service started",
             }
@@ -37,7 +39,7 @@ async def lifespan(app: FastAPI):
     if not IS_DEV_MODE:
         await send_log(
             {
-                "service": "user_service",
+                "service": SERVICE,
                 "event": "shutdown",
                 "message": "User service stopped",
             }
@@ -52,5 +54,5 @@ app.add_route("/metrics", handle_metrics)
 
 app.include_router(users.router, prefix="/users", tags=["users"])
 app.include_router(
-    superadmin_users.router, prefix="/superadmin/users", tags=["superadmin-users"]
+    superadmin_users.router, prefix="/admin/users", tags=["superadmin-users"]
 )

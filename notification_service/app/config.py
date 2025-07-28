@@ -1,5 +1,6 @@
 import os
 
+PROJECT_NAME = "Notification Service"
 KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
 KAFKA_TOPIC = os.getenv("KAFKA_TOPIC_NOTIFICATIONS", "notifications")
 KAFKA_TOPIC_LOGS = os.getenv("KAFKA_TOPIC_LOGS", "logs")

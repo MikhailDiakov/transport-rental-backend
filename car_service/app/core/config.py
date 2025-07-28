@@ -6,7 +6,7 @@ load_dotenv()
 
 
 class Settings:
-    PROJECT_NAME: str = "User service"
+    PROJECT_NAME: str = "Car service"
 
     # DB
     DB_URL_ASYNC: str = os.getenv("DATABASE_URL_ASYNC", "sqlite+aiosqlite:///./test.db")

@@ -51,6 +51,31 @@ services:
       bash -c "/app/scripts/initialize.sh &&
               supervisord -c /etc/supervisor/conf.d/supervisord.conf"
 
+  booking_service:
+    build:
+      context: ./booking_service
+      dockerfile: Dockerfile
+    container_name: booking_service_dev
+    env_file:
+      - .env
+    environment:
+      - IS_DEV_MODE=true
+      - REDIS_URL=redis://redis:6379
+    ports:
+      - "8002:8002"
+    volumes:
+      - ./booking_service/app:/app/app
+      - ./booking_service/scripts:/app/scripts
+      - ./booking_service/alembic:/app/alembic
+      - ./booking_service/alembic.ini:/app/alembic.ini
+    depends_on:
+      - redis
+    networks:
+      - backend
+    command: >
+      bash -c "/app/scripts/initialize.sh &&
+              uvicorn app.main:app --host 0.0.0.0 --port 8002 --workers 4"
+
   redis:
     image: redis:7-alpine
     container_name: redis_dev

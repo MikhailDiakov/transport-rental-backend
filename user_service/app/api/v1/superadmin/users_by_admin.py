@@ -1,25 +1,17 @@
-from typing import List
+from typing import List, Optional
 
 from app.api.deps import get_current_user_info, get_session, require_superadmin
 from app.schemas.user import AdminUserUpdate, UserRead
 from app.services.superadmin.user_service_by_admin import (
     delete_user_by_id,
-    get_admins_from_db,
-    get_all_users_from_db,
     get_user_read_by_id,
+    get_users_from_db,
     update_user_by_admin,
 )
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
-
-
-@router.get(
-    "/admins", response_model=List[UserRead], dependencies=[Depends(require_superadmin)]
-)
-async def list_admins(db: AsyncSession = Depends(get_session)):
-    return await get_admins_from_db(db)
 
 
 @router.get(
@@ -27,8 +19,13 @@ async def list_admins(db: AsyncSession = Depends(get_session)):
     response_model=List[UserRead],
     dependencies=[Depends(require_superadmin)],
 )
-async def list_all_users(db: AsyncSession = Depends(get_session)):
-    return await get_all_users_from_db(db)
+async def list_users(
+    role_id: Optional[int] = Query(None),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1),
+    db: AsyncSession = Depends(get_session),
+):
+    return await get_users_from_db(db, role_id=role_id, skip=skip, limit=limit)
 
 
 @router.get(

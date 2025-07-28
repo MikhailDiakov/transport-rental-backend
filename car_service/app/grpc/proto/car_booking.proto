@@ -4,6 +4,7 @@ package booking;
 
 service BookingService {
   rpc BookCar (BookCarRequest) returns (BookCarResponse);
+  rpc RestoreAvailability (RestoreAvailabilityRequest) returns (RestoreAvailabilityResponse);
 }
 
 message BookCarRequest {
@@ -14,6 +15,18 @@ message BookCarRequest {
 }
 
 message BookCarResponse {
+  bool success = 1;
+  string message = 2;
+  float total_price = 3;
+}
+
+message RestoreAvailabilityRequest {
+  int32 car_id = 1;
+  string start_date = 2;
+  string end_date = 3;
+}
+
+message RestoreAvailabilityResponse {
   bool success = 1;
   string message = 2;
 }

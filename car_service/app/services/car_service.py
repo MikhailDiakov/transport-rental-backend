@@ -1,15 +1,18 @@
 from typing import List
 
+from app.core.config import settings
 from app.models.car import Car
 from app.utils.kafka_producer import send_log
 from app.utils.selectors.car import get_car_by_id, list_cars_with_pagination
 from fastapi import HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession
 
+SERVICE = settings.PROJECT_NAME
+
 
 async def create_car(db: AsyncSession, car_data: dict, admin_id: int) -> Car:
     log = {
-        "service": "car_service",
+        "service": SERVICE,
         "event": "create_car",
         "admin_id": admin_id,
         "car_data": car_data,
@@ -32,7 +35,7 @@ async def create_car(db: AsyncSession, car_data: dict, admin_id: int) -> Car:
 
 async def get_car(db: AsyncSession, car_id: int, user_id: int | None = None) -> Car:
     log = {
-        "service": "car_service",
+        "service": SERVICE,
         "event": "get_car",
         "car_id": car_id,
         "admin_id": user_id,
@@ -51,7 +54,7 @@ async def list_cars(
     db: AsyncSession, skip: int = 0, limit: int = 100, user_id: int | None = None
 ) -> List[Car]:
     log = {
-        "service": "car_service",
+        "service": SERVICE,
         "event": "list_cars",
         "skip": skip,
         "limit": limit,
@@ -72,7 +75,7 @@ async def update_car(
     db: AsyncSession, car_id: int, car_data: dict, admin_id: int
 ) -> Car:
     log = {
-        "service": "car_service",
+        "service": SERVICE,
         "event": "update_car",
         "car_id": car_id,
         "admin_id": admin_id,
@@ -96,7 +99,7 @@ async def update_car(
 
 async def delete_car(db: AsyncSession, car_id: int, admin_id: int) -> None:
     log = {
-        "service": "car_service",
+        "service": SERVICE,
         "event": "delete_car",
         "car_id": car_id,
         "admin_id": admin_id,

@@ -1,6 +1,7 @@
-from typing import List
+from typing import List, Optional
 
 from app.api.deps import RoleEnum
+from app.core.config import settings
 from app.core.hash import get_password_hash
 from app.models.user import User
 from app.schemas.user import AdminUserUpdate, UserRead
@@ -14,48 +15,35 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-SERVICE = "user_service_admin"
+SERVICE = settings.PROJECT_NAME
 
 
-async def get_all_users_from_db(db: AsyncSession) -> List[UserRead]:
-    users = (await db.execute(select(User))).scalars().all()
+async def get_users_from_db(
+    db: AsyncSession,
+    role_id: Optional[int] = None,
+    skip: int = 0,
+    limit: int = 100,
+) -> List[UserRead]:
+    query = select(User)
+    if role_id is not None:
+        query = query.where(User.role_id == role_id)
+
+    query = query.offset(skip).limit(limit)
+
+    users = (await db.execute(query)).scalars().all()
+
     await send_log(
         {
             "service": SERVICE,
-            "event": "get_all_users",
+            "event": "get_users",
             "result": "success",
             "count": len(users),
+            "filtered_by_role": role_id,
+            "skip": skip,
+            "limit": limit,
         }
     )
     return [UserRead.model_validate(u) for u in users]
-
-
-async def get_admins_from_db(db: AsyncSession) -> List[UserRead]:
-    admins = (
-        (
-            await db.execute(
-                select(User).where(
-                    User.role_id.in_(
-                        [
-                            RoleEnum.ADMIN.value,
-                            RoleEnum.SUPERADMIN.value,
-                        ]
-                    )
-                )
-            )
-        )
-        .scalars()
-        .all()
-    )
-    await send_log(
-        {
-            "service": SERVICE,
-            "event": "get_admins",
-            "result": "success",
-            "count": len(admins),
-        }
-    )
-    return [UserRead.model_validate(u) for u in admins]
 
 
 async def get_user_read_by_id(db: AsyncSession, user_id: int) -> UserRead:
