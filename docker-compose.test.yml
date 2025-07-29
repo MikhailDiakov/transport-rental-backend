@@ -1,0 +1,66 @@
+version: "3.8"
+
+services:
+  user_service_tests:
+    build:
+      context: ./user_service
+      dockerfile: Dockerfile
+    container_name: user_service_tests
+    volumes:
+      - ./user_service/app:/app/app
+      - ./user_service/tests:/app/tests
+      - ./user_service/scripts:/app/scripts
+      - ./user_service/alembic:/app/alembic
+      - ./user_service/alembic.ini:/app/alembic.ini
+    networks:
+      - backend
+    command: pytest -v --color=yes --code-highlight=yes /app/tests
+
+  car_service_tests:
+    build:
+      context: ./car_service
+      dockerfile: Dockerfile
+    container_name: car_service_tests
+    volumes:
+      - ./car_service/app:/app/app
+      - ./car_service/tests:/app/tests
+      - ./car_service/scripts:/app/scripts
+      - ./car_service/alembic:/app/alembic
+      - ./car_service/alembic.ini:/app/alembic.ini
+    networks:
+      - backend
+    command: pytest -v --color=yes --code-highlight=yes /app/tests
+
+  booking_service_tests:
+    build:
+      context: ./booking_service
+      dockerfile: Dockerfile
+    container_name: booking_service_tests
+    volumes:
+      - ./booking_service/app:/app/app
+      - ./booking_service/tests:/app/tests
+      - ./booking_service/scripts:/app/scripts
+      - ./booking_service/alembic:/app/alembic
+      - ./booking_service/alembic.ini:/app/alembic.ini
+    networks:
+      - backend
+    command: pytest -v --color=yes --code-highlight=yes /app/tests
+
+  payment_service_tests:
+    build:
+      context: ./payment_service
+      dockerfile: Dockerfile
+    container_name: payment_service_tests
+    volumes:
+      - ./payment_service/app:/app/app
+      - ./payment_service/tests:/app/tests
+      - ./payment_service/scripts:/app/scripts
+      - ./payment_service/alembic:/app/alembic
+      - ./payment_service/alembic.ini:/app/alembic.ini
+    networks:
+      - backend
+    command: pytest -v --color=yes --code-highlight=yes /app/tests
+
+networks:
+  backend:
+    driver: bridge

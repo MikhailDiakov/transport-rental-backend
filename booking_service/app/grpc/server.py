@@ -67,6 +67,7 @@ class BookingPaymentServiceServicer(
                     total_price=booking.total_price,
                     status=booking.status,
                     can_pay=can_pay,
+                    user_id=booking.user_id,
                 )
 
         except Exception as e:

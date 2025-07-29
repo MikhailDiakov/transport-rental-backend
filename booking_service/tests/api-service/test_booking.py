@@ -14,15 +14,25 @@ async def test_book_car_success(client_user):
         "end_date": (today + timedelta(days=3)).isoformat(),
     }
 
-    mock_response = AsyncMock()
-    mock_response.success = True
-    mock_response.total_price = 500.0
-    mock_response.message = "Booking successful"
+    mock_grpc_response = AsyncMock()
+    mock_grpc_response.success = True
+    mock_grpc_response.total_price = 500.0
+    mock_grpc_response.message = "Booking successful"
+
+    mock_user_info = AsyncMock()
+    mock_user_info.username = "testuser"
+    mock_user_info.email = "testuser@example.com"
 
     with (
         patch(
-            "app.services.booking_service.book_car_via_grpc", return_value=mock_response
+            "app.services.booking_service.book_car_via_grpc",
+            new=AsyncMock(return_value=mock_grpc_response),
         ),
+        patch(
+            "app.services.booking_service.get_user_info",
+            new=AsyncMock(return_value=mock_user_info),
+        ),
+        patch("app.utils.kafka_producer.send_notification_email", new=AsyncMock()),
     ):
         response = await client_user.post("/booking/", json=payload)
 

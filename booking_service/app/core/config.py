@@ -9,8 +9,10 @@ class Settings:
     PROJECT_NAME: str = "Booking service"
 
     # DB
-    DB_URL_ASYNC: str = os.getenv("DATABASE_URL_ASYNC", "sqlite+aiosqlite:///./test.db")
-    DB_URL_SYNC: str = os.getenv("DATABASE_URL_SYNC", "sqlite:///./test.db")
+    DB_URL_ASYNC: str = os.getenv(
+        "BOOKING_DATABASE_URL_ASYNC", "sqlite+aiosqlite:///./test.db"
+    )
+    DB_URL_SYNC: str = os.getenv("BOOKING_DATABASE_URL_SYNC", "sqlite:///./test.db")
 
     # Test database URL
     TEST_DATABASE_URL: str = os.getenv(

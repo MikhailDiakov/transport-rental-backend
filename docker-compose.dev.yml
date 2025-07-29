@@ -1,3 +1,5 @@
+version: "3.8"
+
 services:
   user_service:
     build:
@@ -5,13 +7,9 @@ services:
       dockerfile: Dockerfile
     container_name: user_service_dev
     env_file:
-      - .env
-    environment:
-      - IS_DEV_MODE=true
-      - REDIS_URL=redis://redis:6379
+      - .env.dev
     ports:
       - "8000:8000"
-      - "50051:50051"
     volumes:
       - ./user_service/app:/app/app
       - ./user_service/scripts:/app/scripts
@@ -31,13 +29,9 @@ services:
       dockerfile: Dockerfile
     container_name: car_service_dev
     env_file:
-      - .env
-    environment:
-      - IS_DEV_MODE=true
-      - REDIS_URL=redis://redis:6379
+      - .env.dev
     ports:
       - "8001:8001"
-      - "50052:50052"
     volumes:
       - ./car_service/app:/app/app
       - ./car_service/scripts:/app/scripts
@@ -57,13 +51,9 @@ services:
       dockerfile: Dockerfile
     container_name: booking_service_dev
     env_file:
-      - .env
-    environment:
-      - IS_DEV_MODE=true
-      - REDIS_URL=redis://redis:6379
+      - .env.dev
     ports:
       - "8002:8002"
-      - "50053:50053"
     volumes:
       - ./booking_service/app:/app/app
       - ./booking_service/scripts:/app/scripts
@@ -76,6 +66,39 @@ services:
     command: >
       bash -c "/app/scripts/initialize.sh &&
               supervisord -c /etc/supervisor/conf.d/supervisord.conf"
+
+  payment_service:
+    build:
+      context: ./payment_service
+      dockerfile: Dockerfile
+    container_name: payment_service_dev
+    env_file:
+      - .env.dev
+    ports:
+      - "8003:8003"
+    volumes:
+      - ./payment_service/app:/app/app
+      - ./payment_service/scripts:/app/scripts
+      - ./payment_service/alembic:/app/alembic
+      - ./payment_service/alembic.ini:/app/alembic.ini
+    depends_on:
+      - redis
+    networks:
+      - backend
+    command: >
+      bash -c "/app/scripts/initialize.sh &&
+              uvicorn app.main:app --host 0.0.0.0 --port 8003 --workers 4"
+
+  stripe-listener:
+    image: stripe/stripe-cli:latest
+    command: listen --forward-to payment_service:8003/webhooks/stripe/webhook/
+    environment:
+      - STRIPE_API_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_DEVICE_NAME=stripe-listener
+    depends_on:
+      - payment_service
+    networks:
+      - backend
 
   redis:
     image: redis:7-alpine

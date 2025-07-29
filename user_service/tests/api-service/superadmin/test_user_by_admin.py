@@ -5,25 +5,37 @@ NON_SUPERADMIN_ERROR_MSG = "Access denied: only superadmins can perform this act
 
 
 @pytest.mark.asyncio
-async def test_list_admins_superadmin(super_admin_client):
-    response = await super_admin_client.get("/superadmin/users/admins")
+async def test_list_all_users_superadmin(super_admin_client):
+    response = await super_admin_client.get("/admin/users/")
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert isinstance(data, list)
-    assert all(u["role_id"] in [1, 0] for u in data)
+    assert len(data) > 0
+    assert "email" in data[0]
 
 
 @pytest.mark.asyncio
-async def test_list_all_users_superadmin(super_admin_client):
-    response = await super_admin_client.get("/superadmin/users/")
+async def test_list_users_filtered_by_role(super_admin_client):
+    role_admin_id = 2
+
+    response = await super_admin_client.get(f"/admin/users/?role_id={role_admin_id}")
+    assert response.status_code == status.HTTP_200_OK
+    data = response.json()
+    assert all(user["role_id"] == role_admin_id for user in data)
+
+
+@pytest.mark.asyncio
+async def test_list_users_pagination(super_admin_client):
+    response = await super_admin_client.get("/admin/users/?skip=0&limit=2")
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert isinstance(data, list)
+    assert len(data) <= 2
 
 
 @pytest.mark.asyncio
 async def test_get_user_by_id_superadmin(super_admin_client):
-    response = await super_admin_client.get("/superadmin/users/3")
+    response = await super_admin_client.get("/admin/users/3")
     if response.status_code == status.HTTP_404_NOT_FOUND:
         pytest.skip("User with id=1 not found in test DB")
     assert response.status_code == status.HTTP_200_OK
@@ -33,7 +45,7 @@ async def test_get_user_by_id_superadmin(super_admin_client):
 
 @pytest.mark.asyncio
 async def test_get_user_by_id_not_found(super_admin_client):
-    response = await super_admin_client.get("/superadmin/users/99999")
+    response = await super_admin_client.get("/admin/users/99999")
     assert response.status_code == status.HTTP_404_NOT_FOUND
     data = response.json()
     assert data["detail"] == "User with id=99999 not found"
@@ -47,7 +59,7 @@ async def test_update_user_by_admin_success(super_admin_client):
         "password": "newpassword123#",
         "role": 2,
     }
-    response = await super_admin_client.put("/superadmin/users/2", json=update_data)
+    response = await super_admin_client.put("/admin/users/2", json=update_data)
     assert response.status_code == status.HTTP_200_OK
     data = response.json()
     assert data["email"] == update_data["email"]
@@ -63,7 +75,7 @@ async def test_update_user_not_found(super_admin_client):
         "password": "newpassword123#",
         "role": 2,
     }
-    response = await super_admin_client.put("/superadmin/users/99999", json=update_data)
+    response = await super_admin_client.put("/admin/users/99999", json=update_data)
     assert response.status_code == status.HTTP_404_NOT_FOUND
     data = response.json()
     assert data["detail"] == "User not found"
@@ -72,7 +84,7 @@ async def test_update_user_not_found(super_admin_client):
 @pytest.mark.asyncio
 async def test_update_user_by_admin_cannot_edit_self(super_admin_client):
     update_data = {"email": "test@example.com"}
-    response = await super_admin_client.put("/superadmin/users/1", json=update_data)
+    response = await super_admin_client.put("/admin/users/1", json=update_data)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["detail"] == "You cannot edit your own account"
 
@@ -80,7 +92,7 @@ async def test_update_user_by_admin_cannot_edit_self(super_admin_client):
 @pytest.mark.asyncio
 async def test_update_user_by_admin_email_already_exists(super_admin_client):
     update_data = {"email": "admin@example.com"}
-    response = await super_admin_client.put("/superadmin/users/3", json=update_data)
+    response = await super_admin_client.put("/admin/users/3", json=update_data)
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["detail"] == "Email already in use"
 
@@ -88,20 +100,20 @@ async def test_update_user_by_admin_email_already_exists(super_admin_client):
 @pytest.mark.asyncio
 async def test_update_user_by_admin_cannot_assign_superadmin_role(super_admin_client):
     update_data = {"role": 0}
-    response = await super_admin_client.put("/superadmin/users/2", json=update_data)
+    response = await super_admin_client.put("/admin/users/2", json=update_data)
     assert response.status_code == status.HTTP_403_FORBIDDEN
     assert response.json()["detail"] == "Cannot assign superadmin role"
 
 
 @pytest.mark.asyncio
 async def test_delete_user_success(super_admin_client):
-    response = await super_admin_client.delete("/superadmin/users/3")
+    response = await super_admin_client.delete("/admin/users/3")
     assert response.status_code == status.HTTP_204_NO_CONTENT
 
 
 @pytest.mark.asyncio
 async def test_delete_user_not_found(super_admin_client):
-    response = await super_admin_client.delete("/superadmin/users/99999")
+    response = await super_admin_client.delete("/admin/users/99999")
     assert response.status_code == status.HTTP_404_NOT_FOUND
     data = response.json()
     assert data["detail"] == "User not found"
@@ -109,7 +121,7 @@ async def test_delete_user_not_found(super_admin_client):
 
 @pytest.mark.asyncio
 async def test_delete_user_cannot_delete_self(super_admin_client):
-    response = await super_admin_client.delete("/superadmin/users/1")
+    response = await super_admin_client.delete("/admin/users/1")
     assert response.status_code == status.HTTP_400_BAD_REQUEST
     assert response.json()["detail"] == "You cannot delete your own account"
 
@@ -122,11 +134,11 @@ async def test_non_superadmins_cannot_access_superadmin_endpoints(
         user_id = 2
 
         endpoints = [
-            ("get", "/superadmin/users/admins"),
-            ("get", "/superadmin/users/"),
-            ("get", f"/superadmin/users/{user_id}"),
-            ("put", f"/superadmin/users/{user_id}"),
-            ("delete", f"/superadmin/users/{user_id}"),
+            ("get", "/admin/users/admins"),
+            ("get", "/admin/users/"),
+            ("get", f"/admin/users/{user_id}"),
+            ("put", f"/admin/users/{user_id}"),
+            ("delete", f"/admin/users/{user_id}"),
         ]
 
         for method, url in endpoints:

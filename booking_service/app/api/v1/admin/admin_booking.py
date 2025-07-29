@@ -7,7 +7,7 @@ from app.schemas.booking import (
     BookingRead,
     BookingUpdate,
 )
-from app.services.admin_booking_service import (
+from app.services.admin.admin_booking_service import (
     admin_create_booking,
     admin_delete_booking,
     admin_get_booking,

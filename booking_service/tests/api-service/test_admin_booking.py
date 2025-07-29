@@ -23,10 +23,11 @@ async def test_admin_create_booking_success(client_admin):
 
     with (
         patch(
-            "app.services.admin_booking_service.validate_user_exists", return_value=True
+            "app.services.admin.admin_booking_service.validate_user_exists",
+            return_value=True,
         ),
         patch(
-            "app.services.admin_booking_service.book_car_via_grpc",
+            "app.services.admin.admin_booking_service.book_car_via_grpc",
             return_value=grpc_response,
         ),
     ):
@@ -51,7 +52,7 @@ async def test_admin_create_booking_user_not_found(client_admin):
 
     with (
         patch(
-            "app.services.admin_booking_service.validate_user_exists",
+            "app.services.admin.admin_booking_service.validate_user_exists",
             return_value=False,
         ),
     ):
@@ -170,7 +171,7 @@ async def test_admin_delete_booking_success(client_admin, db_session_with_rollba
 
     with (
         patch(
-            "app.services.admin_booking_service.restore_availability_via_grpc",
+            "app.services.admin.admin_booking_service.restore_availability_via_grpc",
             return_value=grpc_response,
         ),
     ):
@@ -186,7 +187,7 @@ async def test_admin_delete_booking_not_found(client_admin):
 
     with (
         patch(
-            "app.services.admin_booking_service.restore_availability_via_grpc",
+            "app.services.admin.admin_booking_service.restore_availability_via_grpc",
             return_value=grpc_response,
         ),
     ):

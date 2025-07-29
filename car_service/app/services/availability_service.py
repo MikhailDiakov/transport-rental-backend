@@ -1,3 +1,4 @@
+from datetime import date, datetime
 from typing import List, Optional
 
 from app.core.config import settings
@@ -11,6 +12,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 SERVICE = settings.PROJECT_NAME
 
 
+def serialize_dates(d: dict) -> dict:
+    return {
+        k: (v.isoformat() if isinstance(v, (date, datetime)) else v)
+        for k, v in d.items()
+    }
+
+
 async def create_availability(
     db: AsyncSession, data: dict, admin_id: int
 ) -> CarAvailability:
@@ -18,7 +26,7 @@ async def create_availability(
         "service": SERVICE,
         "event": "create_availability",
         "admin_id": admin_id,
-        "data": data,
+        "data": serialize_dates(data),
     }
     try:
         car = await get_car_by_id(db, data["car_id"])

@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 
 import redis.asyncio as redis
 from app.api.v1 import users
-from app.api.v1.superadmin import users_by_admin as superadmin_users
+from app.api.v1.superadmin import superadmin_users as superadmin_users
 from app.core.config import settings
 from app.utils.kafka_producer import close_producer, get_kafka_producer, send_log
 from fastapi import FastAPI

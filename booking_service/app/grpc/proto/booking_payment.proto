@@ -20,6 +20,7 @@ message GetBookingForPaymentResponse {
   float total_price = 4;
   string status = 5; // pending, partially_paid, paid, confirmed, cancelled, expired, refunded
   bool can_pay = 6;
+  int32 user_id = 7;
 }
 
 message UpdateBookingPaymentStatusRequest {

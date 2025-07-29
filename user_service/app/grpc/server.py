@@ -9,7 +9,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 import grpc
 
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
-SERVICE = str(settings.PROJECT_NAME + "_grpc")
+SERVICE = f"{settings.PROJECT_NAME}_grpc"
 
 
 class UserServiceServicer(user_pb2_grpc.UserServiceServicer):

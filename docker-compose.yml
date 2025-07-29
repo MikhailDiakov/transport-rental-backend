@@ -19,6 +19,7 @@ services:
       - elasticsearch
       - kafka
       - redis
+      - postgres_user
     networks:
       - backend
 
@@ -40,6 +41,7 @@ services:
       - elasticsearch
       - kafka
       - redis
+      - postgres_car
     networks:
       - backend
 
@@ -61,6 +63,42 @@ services:
       - elasticsearch
       - kafka
       - redis
+      - postgres_booking
+    networks:
+      - backend
+
+  payment_service:
+    build:
+      context: ./payment_service
+      dockerfile: Dockerfile
+    container_name: payment_service_dev
+    env_file:
+      - .env
+    environment:
+      - BACKEND_URL=http://localhost:8003
+    ports:
+      - "8003:8003"
+    volumes:
+      - ./payment_service/app:/app/app
+      - ./payment_service/scripts:/app/scripts
+      - ./payment_service/alembic:/app/alembic
+      - ./payment_service/alembic.ini:/app/alembic.ini
+    depends_on:
+      - elasticsearch
+      - kafka
+      - redis
+      - postgres_payment
+    networks:
+      - backend
+
+  stripe-listener:
+    image: stripe/stripe-cli:latest
+    command: listen --forward-to payment_service:8003/webhooks/stripe/webhook/
+    environment:
+      - STRIPE_API_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_DEVICE_NAME=stripe-listener
+    depends_on:
+      - payment_service
     networks:
       - backend
 
@@ -176,6 +214,58 @@ services:
     depends_on:
       - prometheus
 
+  postgres_user:
+    image: postgres:15
+    container_name: postgres_user
+    restart: always
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: user_db
+    volumes:
+      - pgdata_user:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  postgres_car:
+    image: postgres:15
+    container_name: postgres_car
+    restart: always
+    environment:
+      POSTGRES_USER: car
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: car_db
+    volumes:
+      - pgdata_car:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  postgres_booking:
+    image: postgres:15
+    container_name: postgres_booking
+    restart: always
+    environment:
+      POSTGRES_USER: booking
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: booking_db
+    volumes:
+      - pgdata_booking:/var/lib/postgresql/data
+    networks:
+      - backend
+
+  postgres_payment:
+    image: postgres:15
+    container_name: postgres_payment
+    restart: always
+    environment:
+      POSTGRES_USER: payment
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: payment_db
+    volumes:
+      - pgdata_payment:/var/lib/postgresql/data
+    networks:
+      - backend
+
 volumes:
   redis_data:
   kafka_data:
@@ -184,6 +274,10 @@ volumes:
   es_data:
   prometheus_data:
   grafana_data:
+  pgdata_user:
+  pgdata_car:
+  pgdata_booking:
+  pgdata_payment:
 
 networks:
   backend:
