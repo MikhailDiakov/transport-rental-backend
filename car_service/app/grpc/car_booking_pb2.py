@@ -24,7 +24,7 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11\x63\x61r_booking.proto\x12\x07\x62ooking\"W\n\x0e\x42ookCarRequest\x12\x0e\n\x06\x63\x61r_id\x18\x01 \x01(\x05\x12\x12\n\nstart_date\x18\x02 \x01(\t\x12\x10\n\x08\x65nd_date\x18\x03 \x01(\t\x12\x0f\n\x07user_id\x18\x04 \x01(\x05\"H\n\x0f\x42ookCarResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x13\n\x0btotal_price\x18\x03 \x01(\x02\"R\n\x1aRestoreAvailabilityRequest\x12\x0e\n\x06\x63\x61r_id\x18\x01 \x01(\x05\x12\x12\n\nstart_date\x18\x02 \x01(\t\x12\x10\n\x08\x65nd_date\x18\x03 \x01(\t\"?\n\x1bRestoreAvailabilityResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t2\xb0\x01\n\x0e\x42ookingService\x12<\n\x07\x42ookCar\x12\x17.booking.BookCarRequest\x1a\x18.booking.BookCarResponse\x12`\n\x13RestoreAvailability\x12#.booking.RestoreAvailabilityRequest\x1a$.booking.RestoreAvailabilityResponseb\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x11\x63\x61r_booking.proto\x12\x07\x62ooking\"W\n\x0e\x42ookCarRequest\x12\x0e\n\x06\x63\x61r_id\x18\x01 \x01(\x05\x12\x12\n\nstart_date\x18\x02 \x01(\t\x12\x10\n\x08\x65nd_date\x18\x03 \x01(\t\x12\x0f\n\x07user_id\x18\x04 \x01(\x05\"H\n\x0f\x42ookCarResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t\x12\x13\n\x0btotal_price\x18\x03 \x01(\x02\"i\n\x1aRestoreAvailabilityRequest\x12\x0e\n\x06\x63\x61r_id\x18\x01 \x01(\x05\x12\x12\n\nstart_date\x18\x02 \x01(\t\x12\x10\n\x08\x65nd_date\x18\x03 \x01(\t\x12\x15\n\rprice_per_day\x18\x04 \x01(\x02\"?\n\x1bRestoreAvailabilityResponse\x12\x0f\n\x07success\x18\x01 \x01(\x08\x12\x0f\n\x07message\x18\x02 \x01(\t2\xb0\x01\n\x0e\x42ookingService\x12<\n\x07\x42ookCar\x12\x17.booking.BookCarRequest\x1a\x18.booking.BookCarResponse\x12`\n\x13RestoreAvailability\x12#.booking.RestoreAvailabilityRequest\x1a$.booking.RestoreAvailabilityResponseb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
@@ -36,9 +36,9 @@ if not _descriptor._USE_C_DESCRIPTORS:
   _globals['_BOOKCARRESPONSE']._serialized_start=119
   _globals['_BOOKCARRESPONSE']._serialized_end=191
   _globals['_RESTOREAVAILABILITYREQUEST']._serialized_start=193
-  _globals['_RESTOREAVAILABILITYREQUEST']._serialized_end=275
-  _globals['_RESTOREAVAILABILITYRESPONSE']._serialized_start=277
-  _globals['_RESTOREAVAILABILITYRESPONSE']._serialized_end=340
-  _globals['_BOOKINGSERVICE']._serialized_start=343
-  _globals['_BOOKINGSERVICE']._serialized_end=519
+  _globals['_RESTOREAVAILABILITYREQUEST']._serialized_end=298
+  _globals['_RESTOREAVAILABILITYRESPONSE']._serialized_start=300
+  _globals['_RESTOREAVAILABILITYRESPONSE']._serialized_end=363
+  _globals['_BOOKINGSERVICE']._serialized_start=366
+  _globals['_BOOKINGSERVICE']._serialized_end=542
 # @@protoc_insertion_point(module_scope)

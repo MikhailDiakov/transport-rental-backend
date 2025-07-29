@@ -42,11 +42,6 @@ class Settings:
         os.getenv("GRPC_PORT_FOR_BOOKING_SERVICE", 50053)
     )
 
-    # KAFKA SETTINGS
-    KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
-    KAFKA_TOPIC_LOGS = os.getenv("KAFKA_TOPIC_LOGS", "logs")
-    KAFKA_TOPIC_NOTIFICATIONS = os.getenv("KAFKA_TOPIC_NOTIFICATIONS", "notifications")
-
     @property
     def CAR_GRPC_HOST(self) -> str:
         return f"{self.GRPC_HOST_FOR_CAR_SERVICE}:{self.GRPC_PORT_FOR_CAR_SERVICE}"
@@ -54,6 +49,11 @@ class Settings:
     @property
     def USER_GRPC_HOST(self) -> str:
         return f"{self.GRPC_HOST_FOR_USER_SERVICE}:{self.GRPC_PORT_FOR_USER_SERVICE}"
+
+    # KAFKA SETTINGS
+    KAFKA_BOOTSTRAP_SERVERS = os.getenv("KAFKA_BOOTSTRAP_SERVERS", "kafka:9092")
+    KAFKA_TOPIC_LOGS = os.getenv("KAFKA_TOPIC_LOGS", "logs")
+    KAFKA_TOPIC_NOTIFICATIONS = os.getenv("KAFKA_TOPIC_NOTIFICATIONS", "notifications")
 
 
 settings = Settings()

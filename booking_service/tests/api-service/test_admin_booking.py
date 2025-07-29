@@ -3,6 +3,7 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 from app.models.booking import Booking
+from fastapi import status
 
 
 @pytest.mark.asyncio
@@ -193,3 +194,28 @@ async def test_admin_delete_booking_not_found(client_admin):
 
     assert response.status_code == 404
     assert response.json()["detail"] == "Booking not found or failed to delete"
+
+
+@pytest.mark.asyncio
+async def test_user_cannot_access_admin_booking_endpoints(client_user):
+    today = date.today()
+    payload = {
+        "car_id": 1,
+        "start_date": today.isoformat(),
+        "end_date": (today + timedelta(days=2)).isoformat(),
+        "user_id": 42,
+    }
+
+    endpoints = [
+        ("post", "/admin/booking/", {"json": payload}),
+        ("get", "/admin/booking/1", {}),
+        ("get", "/admin/booking/", {}),
+        ("put", "/admin/booking/1", {"json": {"status": "cancelled"}}),
+        ("delete", "/admin/booking/1", {}),
+    ]
+
+    for method, url, kwargs in endpoints:
+        response = await getattr(client_user, method)(url, **kwargs)
+        assert response.status_code == status.HTTP_403_FORBIDDEN, (
+            f"{method.upper()} {url} should return 403"
+        )

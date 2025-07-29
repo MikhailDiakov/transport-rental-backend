@@ -1,48 +1,18 @@
 from datetime import date
 from typing import Optional
 
-import grpc
 from app.core.config import settings
-from app.grpc import car_booking_pb2, car_booking_pb2_grpc, user_pb2, user_pb2_grpc
 from app.models.booking import Booking
+from app.utils.grpc import (
+    book_car_via_grpc,
+    restore_availability_via_grpc,
+    validate_user_exists,
+)
 from app.utils.kafka_producer import send_log
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 SERVICE = settings.PROJECT_NAME
-
-
-async def validate_user_exists(user_id: int) -> bool:
-    async with grpc.aio.insecure_channel(settings.USER_GRPC_HOST) as channel:
-        stub = user_pb2_grpc.UserServiceStub(channel)
-        request = user_pb2.GetUserByIdRequest(user_id=user_id)
-        response = await stub.GetUserById(request)
-        return response.is_valid
-
-
-async def restore_availability_via_grpc(car_id: int, start: str, end: str):
-    async with grpc.aio.insecure_channel(settings.CAR_GRPC_HOST) as channel:
-        stub = car_booking_pb2_grpc.BookingServiceStub(channel)
-        request = car_booking_pb2.RestoreAvailabilityRequest(
-            car_id=car_id,
-            start_date=start,
-            end_date=end,
-        )
-        response = await stub.RestoreAvailability(request)
-        return response
-
-
-async def book_car_via_grpc(car_id: int, start: str, end: str, user_id: int):
-    async with grpc.aio.insecure_channel(settings.CAR_GRPC_HOST) as channel:
-        stub = car_booking_pb2_grpc.BookingServiceStub(channel)
-        request = car_booking_pb2.BookCarRequest(
-            car_id=car_id,
-            start_date=start,
-            end_date=end,
-            user_id=user_id,
-        )
-        response = await stub.BookCar(request)
-        return response
 
 
 async def admin_create_booking(
@@ -215,23 +185,35 @@ async def admin_delete_booking(
 
     result = await db.execute(select(Booking).where(Booking.id == booking_id))
     booking = result.scalar_one_or_none()
+
     if not booking:
         log.update({"result": "failure", "reason": "Booking not found"})
         await send_log(log)
         return False
 
+    if booking.status == "cancelled":
+        log.update({"result": "success", "note": "already cancelled"})
+        await send_log(log)
+        return True
+
+    price_per_day = booking.total_price / (
+        (booking.end_date - booking.start_date).days + 1
+    )
+
     grpc_response = await restore_availability_via_grpc(
         booking.car_id,
         booking.start_date.isoformat(),
         booking.end_date.isoformat(),
+        price_per_day=price_per_day,
     )
     if not grpc_response.success:
         log.update({"result": "failure", "reason": grpc_response.message})
         await send_log(log)
         return False
 
-    await db.delete(booking)
+    booking.status = "cancelled"
     await db.commit()
+    await db.refresh(booking)
 
     log.update({"result": "success"})
     await send_log(log)

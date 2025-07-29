@@ -1,39 +1,17 @@
 from datetime import date
 
-import grpc
 from app.core.config import settings
-from app.grpc import car_booking_pb2, car_booking_pb2_grpc
 from app.models.booking import Booking
-from app.utils.kafka_producer import send_log
+from app.utils.grpc import (
+    book_car_via_grpc,
+    get_user_info,
+    restore_availability_via_grpc,
+)
+from app.utils.kafka_producer import send_log, send_notification_email
 from sqlalchemy import and_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 SERVICE = settings.PROJECT_NAME
-
-
-async def book_car_via_grpc(car_id: int, start: str, end: str, user_id: int):
-    async with grpc.aio.insecure_channel(settings.CAR_GRPC_HOST) as channel:
-        stub = car_booking_pb2_grpc.BookingServiceStub(channel)
-        request = car_booking_pb2.BookCarRequest(
-            car_id=car_id,
-            start_date=start,
-            end_date=end,
-            user_id=user_id,
-        )
-        response = await stub.BookCar(request)
-        return response
-
-
-async def restore_availability_via_grpc(car_id: int, start: str, end: str):
-    async with grpc.aio.insecure_channel(settings.CAR_GRPC_HOST) as channel:
-        stub = car_booking_pb2_grpc.BookingServiceStub(channel)
-        request = car_booking_pb2.RestoreAvailabilityRequest(
-            car_id=car_id,
-            start_date=start,
-            end_date=end,
-        )
-        response = await stub.RestoreAvailability(request)
-        return response
 
 
 async def create_booking(
@@ -67,6 +45,21 @@ async def create_booking(
         db.add(booking)
         await db.commit()
         await db.refresh(booking)
+
+        user_response = await get_user_info(user_id)
+        if user_response:
+            subject = "Booking Confirmation"
+            body = (
+                f"Hello {user_response.username},\n\n"
+                f"Your booking for car #{car_id} from {start_date} to {end_date} "
+                f"was successful.\n\nTotal price: ${grpc_response.total_price:.2f}\n\n"
+                f"Thank you for using our service!"
+            )
+            await send_notification_email(
+                to_email=user_response.email,
+                subject=subject,
+                body=body,
+            )
 
         log.update({"result": "success", "booking_id": booking.id})
         await send_log(log)
@@ -102,15 +95,24 @@ async def delete_user_booking(db: AsyncSession, booking_id: int, user_id: int) -
     if not booking:
         return False
 
+    if booking.status == "cancelled":
+        return True
+
+    price_per_day = booking.total_price / (
+        (booking.end_date - booking.start_date).days + 1
+    )
+
     grpc_response = await restore_availability_via_grpc(
         booking.car_id,
         booking.start_date.isoformat(),
         booking.end_date.isoformat(),
+        price_per_day=price_per_day,
     )
 
     if not grpc_response.success:
         raise Exception(f"Failed to restore availability: {grpc_response.message}")
 
-    await db.delete(booking)
+    booking.status = "cancelled"
     await db.commit()
+    await db.refresh(booking)
     return True

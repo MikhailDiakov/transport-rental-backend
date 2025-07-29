@@ -130,13 +130,19 @@ class BookingServiceServicer(car_booking_pb2_grpc.BookingServiceServicer):
             "car_id": request.car_id,
             "start_date": request.start_date,
             "end_date": request.end_date,
+            "price_per_day": request.price_per_day,
         }
 
         try:
             start = datetime.fromisoformat(request.start_date).date()
             end = datetime.fromisoformat(request.end_date).date()
+
             if end < start:
                 raise ValueError("End date cannot be before start date")
+
+            price_per_day = request.price_per_day
+            if price_per_day <= 0:
+                raise ValueError("Invalid price_per_day")
 
             async with SessionLocal() as session:
                 stmt = select(CarAvailability).where(
@@ -147,7 +153,6 @@ class BookingServiceServicer(car_booking_pb2_grpc.BookingServiceServicer):
 
                 merged_start = start
                 merged_end = end
-                price_per_day = 1
 
                 for slot in slots:
                     if slot.price_per_day != price_per_day:
@@ -181,7 +186,7 @@ class BookingServiceServicer(car_booking_pb2_grpc.BookingServiceServicer):
             log.update({"result": "failure", "error": str(e), "traceback": tb_str})
             await send_log(log)
             return car_booking_pb2.RestoreAvailabilityResponse(
-                success=False, message="Failed to restore availability"
+                success=False, message=f"Failed: {str(e)}"
             )
 
 

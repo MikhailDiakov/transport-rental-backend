@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package booking;
+
+service BookingPaymentService {
+  rpc GetBookingForPayment(GetBookingForPaymentRequest) returns (GetBookingForPaymentResponse);
+
+  rpc UpdateBookingPaymentStatus(UpdateBookingPaymentStatusRequest) returns (UpdateBookingPaymentStatusResponse);
+}
+
+message GetBookingForPaymentRequest {
+  int32 booking_id = 1;
+}
+
+message GetBookingForPaymentResponse {
+  bool success = 1;
+  string message = 2;
+
+  int32 booking_id = 3;
+  float total_price = 4;
+  string status = 5; // pending, partially_paid, paid, confirmed, cancelled, expired, refunded
+  bool can_pay = 6;
+}
+
+message UpdateBookingPaymentStatusRequest {
+  int32 booking_id = 1;
+  string new_status = 2;
+}
+
+message UpdateBookingPaymentStatusResponse {
+  bool success = 1;
+  string message = 2;
+}
