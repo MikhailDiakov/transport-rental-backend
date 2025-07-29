@@ -1,5 +1,8 @@
 from typing import List, Optional
 
+from fastapi import APIRouter, Depends, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.deps import get_current_user_info, get_session, require_admin
 from app.schemas.availability import (
     CarAvailabilityCreate,
@@ -13,8 +16,6 @@ from app.services.availability_service import (
     list_availabilities,
     update_availability,
 )
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 

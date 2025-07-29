@@ -1,6 +1,9 @@
 from unittest.mock import AsyncMock
 
 import pytest_asyncio
+from httpx import ASGITransport, AsyncClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+
 from app.api.deps import get_session
 from app.core.config import settings
 from app.core.hash import get_password_hash
@@ -8,8 +11,6 @@ from app.db.base import Base
 from app.main import app
 from app.models.role import RoleEnum
 from app.models.user import User
-from httpx import ASGITransport, AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 TEST_DATABASE_URL = settings.TEST_DATABASE_URL
 

@@ -1,12 +1,13 @@
 import asyncio
 
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
+
 from app.core.config import settings
 from app.core.hash import get_password_hash
 from app.db.session import async_session
 from app.models.role import RoleEnum
 from app.models.user import User
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
 
 
 async def create_superadmin(session: AsyncSession):

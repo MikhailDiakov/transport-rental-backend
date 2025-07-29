@@ -1,11 +1,12 @@
 from typing import List
 
+from fastapi import HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.config import settings
 from app.models.car import Car
 from app.utils.kafka_producer import send_log
 from app.utils.selectors.car import get_car_by_id, list_cars_with_pagination
-from fastapi import HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
 
 SERVICE = settings.PROJECT_NAME
 

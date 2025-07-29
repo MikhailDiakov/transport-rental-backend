@@ -19,6 +19,7 @@ COPY ./app /app/app
 COPY ./scripts /app/scripts
 COPY ./alembic.ini /app/
 COPY ./alembic /app/alembic
+COPY pytest.ini /app/
 
 RUN uv sync
 

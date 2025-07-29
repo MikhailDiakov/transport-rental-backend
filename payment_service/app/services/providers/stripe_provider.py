@@ -1,8 +1,9 @@
 import stripe
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.config import settings
 from app.models.payment import Payment, PaymentStatus
 from app.services.providers.base import BasePaymentProvider
-from sqlalchemy.ext.asyncio import AsyncSession
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 

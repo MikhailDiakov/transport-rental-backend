@@ -1,12 +1,12 @@
+from sqlalchemy.ext.asyncio import async_sessionmaker
+
+import grpc
 from app.core.config import settings
 from app.core.security import decode_access_token
 from app.db.session import engine
 from app.grpc import user_pb2, user_pb2_grpc
 from app.utils.kafka_producer import send_log
 from app.utils.selectors.user import get_user_by_id
-from sqlalchemy.ext.asyncio import async_sessionmaker
-
-import grpc
 
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 SERVICE = f"{settings.PROJECT_NAME}_grpc"

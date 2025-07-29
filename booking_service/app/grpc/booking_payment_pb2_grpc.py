@@ -2,6 +2,7 @@
 """Client and server classes corresponding to protobuf-defined services."""
 
 import grpc
+
 from app.grpc import booking_payment_pb2 as booking__payment__pb2
 
 GRPC_GENERATED_VERSION = "1.74.0"

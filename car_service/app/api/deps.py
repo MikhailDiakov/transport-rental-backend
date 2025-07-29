@@ -1,10 +1,11 @@
 from typing import Callable, Union
 
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+
 from app.core.security import decode_access_token
 from app.db.session import async_session
 from app.models.role import RoleEnum
-from fastapi import Depends, HTTPException, status
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 security = HTTPBearer()
 

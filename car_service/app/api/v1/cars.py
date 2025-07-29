@@ -1,3 +1,6 @@
+from fastapi import APIRouter, Depends, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.deps import get_current_user_info, get_session, require_admin
 from app.schemas.car import CarCreate, CarRead, CarUpdate
 from app.services.car_service import (
@@ -7,8 +10,6 @@ from app.services.car_service import (
     list_cars,
     update_car,
 )
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 

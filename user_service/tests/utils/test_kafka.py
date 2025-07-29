@@ -1,12 +1,10 @@
 import json
 from unittest.mock import AsyncMock, patch
 
-import pytest
 from app.core.config import settings
 from app.utils.kafka_producer import close_producer, send_log, send_notification_email
 
 
-@pytest.mark.asyncio
 @patch("app.utils.kafka_producer.get_kafka_producer")
 async def test_send_log_sends_message_with_timestamp(mock_get_producer):
     mock_producer = AsyncMock()
@@ -22,7 +20,6 @@ async def test_send_log_sends_message_with_timestamp(mock_get_producer):
     assert b"test" in data
 
 
-@pytest.mark.asyncio
 @patch("app.utils.kafka_producer.get_kafka_producer")
 async def test_send_notification_email_sends_correct_message(mock_get_producer):
     mock_producer = AsyncMock()
@@ -39,7 +36,6 @@ async def test_send_notification_email_sends_correct_message(mock_get_producer):
     assert payload["type"] == "email"
 
 
-@pytest.mark.asyncio
 @patch("app.utils.kafka_producer.producer", new_callable=AsyncMock)
 async def test_close_producer(mock_producer):
     from app.utils import kafka_producer

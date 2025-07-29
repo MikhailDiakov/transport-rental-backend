@@ -1,7 +1,8 @@
 from abc import ABC, abstractmethod
 
-from app.models.payment import Payment
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.payment import Payment
 
 
 class BasePaymentProvider(ABC):

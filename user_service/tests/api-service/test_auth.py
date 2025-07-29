@@ -3,7 +3,6 @@ from unittest.mock import AsyncMock, patch
 import pytest
 
 
-@pytest.mark.asyncio
 async def test_register_user(client):
     response = await client.post(
         "/users/register",
@@ -20,7 +19,6 @@ async def test_register_user(client):
     assert data["email"] == "testreguser@example.com"
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "payload, expected_error",
     [
@@ -68,7 +66,6 @@ async def test_register_invalid_input(client, payload, expected_error):
     assert expected_error in response.text
 
 
-@pytest.mark.asyncio
 async def test_login_user(client):
     response = await client.post(
         "/users/login",
@@ -81,7 +78,6 @@ async def test_login_user(client):
     assert token["token_type"] == "bearer"
 
 
-@pytest.mark.asyncio
 async def test_login_admin(client):
     response = await client.post(
         "/users/login",
@@ -94,7 +90,6 @@ async def test_login_admin(client):
     assert token["token_type"] == "bearer"
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "data, expected_status, expected_detail",
     [
@@ -123,7 +118,6 @@ async def test_login_invalid_cases(client, data, expected_status, expected_detai
         assert response.json()["detail"] == expected_detail
 
 
-@pytest.mark.asyncio
 async def test_token_refresh_success(client):
     token = "valid_refresh_token"
     payload = {"id": "3", "role": "3"}
@@ -148,7 +142,6 @@ async def test_token_refresh_success(client):
         assert data["token_type"] == "bearer"
 
 
-@pytest.mark.asyncio
 @pytest.mark.parametrize(
     "cookie, decode_return, redis_token, expected_detail",
     [
@@ -180,7 +173,6 @@ async def test_token_refresh_failures(
         assert expected_detail in response.text
 
 
-@pytest.mark.asyncio
 async def test_logout_user_success(super_admin_client):
     with patch("app.utils.redis_client.delete_refresh_token", new_callable=AsyncMock):
         response = await super_admin_client.post("/users/logout")

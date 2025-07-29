@@ -1,4 +1,5 @@
 import grpc
+
 from app.core.config import settings
 from app.grpc import (
     booking_payment_pb2,

@@ -1,5 +1,7 @@
 from datetime import timedelta
 
+from jose import jwt
+
 from app.core.config import settings
 from app.core.security import (
     create_access_token,
@@ -7,7 +9,6 @@ from app.core.security import (
     decode_access_token,
     decode_refresh_token,
 )
-from jose import jwt
 
 
 def test_create_access_token_encodes_expected_payload():

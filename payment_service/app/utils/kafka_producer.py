@@ -4,6 +4,7 @@ from datetime import datetime, timezone
 from typing import Optional
 
 from aiokafka import AIOKafkaProducer
+
 from app.core.config import settings
 
 IS_DEV_MODE = os.getenv("IS_DEV_MODE", "false").lower() == "true"

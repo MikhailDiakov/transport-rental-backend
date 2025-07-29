@@ -1,6 +1,9 @@
 from datetime import date
 from typing import Optional
 
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.config import settings
 from app.models.booking import Booking
 from app.utils.grpc import (
@@ -9,8 +12,6 @@ from app.utils.grpc import (
     validate_user_exists,
 )
 from app.utils.kafka_producer import send_log
-from sqlalchemy import and_, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 SERVICE = settings.PROJECT_NAME
 

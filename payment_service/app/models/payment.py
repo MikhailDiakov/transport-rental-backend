@@ -1,7 +1,8 @@
-from app.db.base import Base
-from app.schemas.payment import PaymentStatus
 from sqlalchemy import Column, DateTime, Enum, Float, Integer, String
 from sqlalchemy.sql import func
+
+from app.db.base import Base
+from app.schemas.payment import PaymentStatus
 
 
 class Payment(Base):

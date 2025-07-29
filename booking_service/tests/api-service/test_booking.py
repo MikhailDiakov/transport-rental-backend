@@ -1,11 +1,9 @@
 from datetime import date, timedelta
 from unittest.mock import AsyncMock, patch
 
-import pytest
 from app.models.booking import Booking
 
 
-@pytest.mark.asyncio
 async def test_book_car_success(client_user):
     today = date.today()
     payload = {
@@ -42,7 +40,6 @@ async def test_book_car_success(client_user):
     assert data["total_price"] == 500.0
 
 
-@pytest.mark.asyncio
 async def test_book_car_failure_from_grpc(client_user):
     today = date.today()
     payload = {
@@ -66,7 +63,6 @@ async def test_book_car_failure_from_grpc(client_user):
     assert response.json()["detail"] == "Car unavailable"
 
 
-@pytest.mark.asyncio
 async def test_get_user_bookings(client_user, db_session_with_rollback, normal_user):
     booking = Booking(
         user_id=normal_user["id"],
@@ -87,7 +83,6 @@ async def test_get_user_bookings(client_user, db_session_with_rollback, normal_u
     assert any(b["id"] == booking.id for b in data["bookings"])
 
 
-@pytest.mark.asyncio
 async def test_delete_booking_success(
     client_user, db_session_with_rollback, normal_user
 ):
@@ -115,14 +110,12 @@ async def test_delete_booking_success(
     assert response.status_code == 204
 
 
-@pytest.mark.asyncio
 async def test_delete_booking_not_found(client_user):
     response = await client_user.delete("/booking/99999")
     assert response.status_code == 404
     assert response.json()["detail"] == "Booking not found or forbidden"
 
 
-@pytest.mark.asyncio
 async def test_book_car_invalid_date_range(client_user):
     today = date.today()
     payload = {

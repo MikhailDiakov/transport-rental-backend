@@ -1,12 +1,13 @@
 import os
 from contextlib import asynccontextmanager
 
+from fastapi import FastAPI
+from starlette_exporter import PrometheusMiddleware, handle_metrics
+
 from app.api.v1 import payments, webhooks
 from app.api.v1.admin import admin_payments
 from app.core.config import settings
 from app.utils.kafka_producer import close_producer, get_kafka_producer, send_log
-from fastapi import FastAPI
-from starlette_exporter import PrometheusMiddleware, handle_metrics
 
 IS_DEV_MODE = os.getenv("IS_DEV_MODE", "false").lower() == "true"
 

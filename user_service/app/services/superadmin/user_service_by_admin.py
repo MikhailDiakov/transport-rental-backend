@@ -1,5 +1,9 @@
 from typing import List, Optional
 
+from fastapi import HTTPException, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.deps import RoleEnum
 from app.core.config import settings
 from app.core.hash import get_password_hash
@@ -11,9 +15,6 @@ from app.utils.selectors.user import (
     get_user_by_id,
     get_user_by_username,
 )
-from fastapi import HTTPException, status
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 SERVICE = settings.PROJECT_NAME
 

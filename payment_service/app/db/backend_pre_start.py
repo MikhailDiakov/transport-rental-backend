@@ -1,8 +1,9 @@
 from time import sleep
 
-from app.core.config import settings
 from sqlalchemy import create_engine, text
 from sqlalchemy.exc import OperationalError
+
+from app.core.config import settings
 
 engine = create_engine(settings.DB_URL_SYNC)
 

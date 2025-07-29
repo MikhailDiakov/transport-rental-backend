@@ -1,5 +1,8 @@
 from typing import List, Optional
 
+from fastapi import APIRouter, Depends, Query, status
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.deps import get_current_user_info, get_session, require_superadmin
 from app.schemas.user import AdminUserUpdate, UserRead
 from app.services.superadmin.user_service_by_admin import (
@@ -8,8 +11,6 @@ from app.services.superadmin.user_service_by_admin import (
     get_users_from_db,
     update_user_by_admin,
 )
-from fastapi import APIRouter, Depends, Query, status
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 

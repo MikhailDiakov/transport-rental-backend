@@ -1,13 +1,14 @@
 import traceback
 
 import grpc
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import async_sessionmaker
+
 from app.core.config import settings
 from app.db.session import engine
 from app.grpc import booking_payment_pb2, booking_payment_pb2_grpc
 from app.models.booking import Booking
 from app.utils.kafka_producer import send_log
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import async_sessionmaker
 
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 SERVICE = f"{settings.PROJECT_NAME}_grpc"

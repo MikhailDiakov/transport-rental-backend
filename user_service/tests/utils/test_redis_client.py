@@ -1,10 +1,8 @@
 from unittest.mock import patch
 
-import pytest
 from app.utils import redis_client as rc
 
 
-@pytest.mark.asyncio
 @patch("app.utils.redis_client.redis_client")
 async def test_set_token_sets_token_and_email(mock_redis):
     mock_redis.get.return_value = None
@@ -16,7 +14,6 @@ async def test_set_token_sets_token_and_email(mock_redis):
     mock_redis.set.assert_any_await("reset:email:user@example.com", "token123", ex=900)
 
 
-@pytest.mark.asyncio
 @patch("app.utils.redis_client.redis_client")
 async def test_set_token_deletes_old_token_if_exists(mock_redis):
     mock_redis.get.return_value = "old_token"
@@ -28,7 +25,6 @@ async def test_set_token_deletes_old_token_if_exists(mock_redis):
     mock_redis.set.assert_any_await("reset:email:user@example.com", "new_token", ex=900)
 
 
-@pytest.mark.asyncio
 @patch("app.utils.redis_client.redis_client")
 async def test_get_email_by_token(mock_redis):
     mock_redis.get.return_value = "user@example.com"
@@ -39,7 +35,6 @@ async def test_get_email_by_token(mock_redis):
     assert result == "user@example.com"
 
 
-@pytest.mark.asyncio
 @patch("app.utils.redis_client.redis_client")
 async def test_delete_token_existing_email(mock_redis):
     mock_redis.get.return_value = "user@example.com"
@@ -51,7 +46,6 @@ async def test_delete_token_existing_email(mock_redis):
     mock_redis.delete.assert_any_await("reset:token123")
 
 
-@pytest.mark.asyncio
 @patch("app.utils.redis_client.redis_client")
 async def test_delete_token_without_email(mock_redis):
     mock_redis.get.return_value = None
@@ -61,7 +55,6 @@ async def test_delete_token_without_email(mock_redis):
     mock_redis.delete.assert_awaited_once_with("reset:token123")
 
 
-@pytest.mark.asyncio
 @patch("app.utils.redis_client.redis_client")
 async def test_is_reset_request_allowed_true(mock_redis):
     mock_redis.exists.return_value = False
@@ -72,7 +65,6 @@ async def test_is_reset_request_allowed_true(mock_redis):
     assert allowed is True
 
 
-@pytest.mark.asyncio
 @patch("app.utils.redis_client.redis_client")
 async def test_is_reset_request_allowed_false(mock_redis):
     mock_redis.exists.return_value = True
@@ -83,7 +75,6 @@ async def test_is_reset_request_allowed_false(mock_redis):
     assert allowed is False
 
 
-@pytest.mark.asyncio
 @patch("app.utils.redis_client.redis_client")
 async def test_store_refresh_token(mock_redis):
     await rc.store_refresh_token(42, "refresh_token_abc", ttl_seconds=604800)
@@ -92,7 +83,6 @@ async def test_store_refresh_token(mock_redis):
     )
 
 
-@pytest.mark.asyncio
 @patch("app.utils.redis_client.redis_client")
 async def test_get_refresh_token(mock_redis):
     mock_redis.get.return_value = "refresh_token_abc"
@@ -103,7 +93,6 @@ async def test_get_refresh_token(mock_redis):
     assert result == "refresh_token_abc"
 
 
-@pytest.mark.asyncio
 @patch("app.utils.redis_client.redis_client")
 async def test_delete_refresh_token(mock_redis):
     await rc.delete_refresh_token(42)

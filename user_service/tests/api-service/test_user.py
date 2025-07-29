@@ -1,9 +1,6 @@
 from unittest.mock import AsyncMock, patch
 
-import pytest
 
-
-@pytest.mark.asyncio
 async def test_get_my_user(client_user):
     response = await client_user.get("/users/me")
     assert response.status_code == 200
@@ -12,7 +9,6 @@ async def test_get_my_user(client_user):
     assert data["email"] == "clientuser@example.com"
 
 
-@pytest.mark.asyncio
 async def test_get_my_user_admin(admin_client):
     response = await admin_client.get("/users/me")
     assert response.status_code == 200
@@ -21,13 +17,11 @@ async def test_get_my_user_admin(admin_client):
     assert data["email"] == "admin@example.com"
 
 
-@pytest.mark.asyncio
 async def test_get_my_user_unauthorized(client):
     response = await client.get("/users/me")
     assert response.status_code == 401
 
 
-@pytest.mark.asyncio
 async def test_update_my_profile_success(client_user):
     response = await client_user.put(
         "/users/me/update",
@@ -43,7 +37,6 @@ async def test_update_my_profile_success(client_user):
     assert data["email"] == "updateduser@example.com"
 
 
-@pytest.mark.asyncio
 async def test_update_my_profile_wrong_old_password(client_user):
     response = await client_user.put(
         "/users/me/update",
@@ -61,7 +54,6 @@ async def test_update_my_profile_wrong_old_password(client_user):
     ]
 
 
-@pytest.mark.asyncio
 async def test_update_my_profile_passwords_do_not_match(client_user):
     response = await client_user.put(
         "/users/me/update",
@@ -76,7 +68,6 @@ async def test_update_my_profile_passwords_do_not_match(client_user):
     assert any("Passwords do not match" in err.get("msg", "") for err in errors)
 
 
-@pytest.mark.asyncio
 async def test_update_email_without_old_password(client_user):
     response = await client_user.put(
         "/users/me/update",
@@ -86,7 +77,6 @@ async def test_update_email_without_old_password(client_user):
     assert response.json()["detail"] == "Old password required to change email"
 
 
-@pytest.mark.asyncio
 async def test_update_user_email_already_exists(client_user):
     response = await client_user.put(
         "/users/me/update", json={"email": "admin@example.com"}
@@ -96,7 +86,6 @@ async def test_update_user_email_already_exists(client_user):
     assert "email" in data["detail"].lower()
 
 
-@pytest.mark.asyncio
 @patch("app.services.user_service.is_reset_request_allowed", new_callable=AsyncMock)
 @patch("app.services.user_service.get_user_by_email", new_callable=AsyncMock)
 @patch("app.services.user_service.set_token", new_callable=AsyncMock)
@@ -123,7 +112,6 @@ async def test_request_password_reset_route_success(
     mock_is_reset_request_allowed.assert_called_once()
 
 
-@pytest.mark.asyncio
 @patch("app.services.user_service.is_reset_request_allowed", new_callable=AsyncMock)
 @patch("app.services.user_service.get_user_by_email", new_callable=AsyncMock)
 async def test_request_password_reset_route_rate_limited(
@@ -143,7 +131,6 @@ async def test_request_password_reset_route_rate_limited(
     mock_is_reset_request_allowed.assert_called_once()
 
 
-@pytest.mark.asyncio
 @patch("app.services.user_service.get_email_by_token", new_callable=AsyncMock)
 @patch("app.services.user_service.get_user_by_email", new_callable=AsyncMock)
 @patch("app.services.user_service.delete_token", new_callable=AsyncMock)
@@ -177,7 +164,6 @@ async def test_reset_password_route_success(
     mock_delete_token.assert_called_once()
 
 
-@pytest.mark.asyncio
 @patch("app.services.user_service.get_email_by_token", new_callable=AsyncMock)
 async def test_reset_password_route_password_too_short(mock_get_email_by_token, client):
     mock_get_email_by_token.return_value = "test@example.com"
@@ -195,7 +181,6 @@ async def test_reset_password_route_password_too_short(mock_get_email_by_token, 
     assert any("at least 6 characters" in err.get("msg", "") for err in errors)
 
 
-@pytest.mark.asyncio
 @patch("app.services.user_service.get_email_by_token", new_callable=AsyncMock)
 async def test_reset_password_route_password_no_digit(mock_get_email_by_token, client):
     mock_get_email_by_token.return_value = "test@example.com"
@@ -213,7 +198,6 @@ async def test_reset_password_route_password_no_digit(mock_get_email_by_token, c
     assert any("at least one digit" in err.get("msg", "") for err in errors)
 
 
-@pytest.mark.asyncio
 @patch("app.services.user_service.get_email_by_token", new_callable=AsyncMock)
 async def test_reset_password_route_password_no_letter(mock_get_email_by_token, client):
     mock_get_email_by_token.return_value = "test@example.com"
@@ -231,7 +215,6 @@ async def test_reset_password_route_password_no_letter(mock_get_email_by_token, 
     assert any("at least one letter" in err.get("msg", "") for err in errors)
 
 
-@pytest.mark.asyncio
 @patch("app.services.user_service.get_email_by_token", new_callable=AsyncMock)
 async def test_reset_password_route_password_no_special_char(
     mock_get_email_by_token, client
@@ -251,7 +234,6 @@ async def test_reset_password_route_password_no_special_char(
     assert any("at least one special character" in err.get("msg", "") for err in errors)
 
 
-@pytest.mark.asyncio
 @patch("app.services.user_service.get_email_by_token", new_callable=AsyncMock)
 async def test_reset_password_route_passwords_do_not_match(
     mock_get_email_by_token, client
@@ -271,7 +253,6 @@ async def test_reset_password_route_passwords_do_not_match(
     assert any("Passwords do not match" in err.get("msg", "") for err in errors)
 
 
-@pytest.mark.asyncio
 @patch("app.services.user_service.get_email_by_token", new_callable=AsyncMock)
 async def test_reset_password_route_invalid_token(
     mock_get_email_by_token,
@@ -294,7 +275,6 @@ async def test_reset_password_route_invalid_token(
     mock_get_email_by_token.assert_called_once()
 
 
-@pytest.mark.asyncio
 @patch("app.services.user_service.get_email_by_token", new_callable=AsyncMock)
 @patch("app.services.user_service.get_user_by_email", new_callable=AsyncMock)
 async def test_reset_password_route_user_not_found(

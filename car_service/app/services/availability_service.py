@@ -1,13 +1,14 @@
 from datetime import date, datetime
 from typing import List, Optional
 
+from fastapi import HTTPException
+from sqlalchemy import and_, or_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.config import settings
 from app.models.availability import CarAvailability
 from app.utils.kafka_producer import send_log
 from app.utils.selectors.car import get_car_by_id
-from fastapi import HTTPException
-from sqlalchemy import and_, or_, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 SERVICE = settings.PROJECT_NAME
 

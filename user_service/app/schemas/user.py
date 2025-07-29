@@ -1,11 +1,12 @@
 from typing import Optional
 
+from pydantic import BaseModel, EmailStr, field_validator, model_validator
+
 from app.models.role import RoleEnum
 from app.schemas.validators import (
     validate_password_complexity,
     validate_username_length,
 )
-from pydantic import BaseModel, EmailStr, field_validator, model_validator
 
 
 class UserCreate(BaseModel):

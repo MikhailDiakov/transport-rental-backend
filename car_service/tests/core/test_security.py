@@ -1,7 +1,8 @@
 import pytest
+from jose import jwt
+
 from app.core.config import settings
 from app.core.security import decode_access_token
-from jose import jwt
 
 
 @pytest.fixture

@@ -1,11 +1,9 @@
 from unittest.mock import AsyncMock, patch
 
-import pytest
 from app.models.payment import Payment
 from app.schemas.payment import PaymentMethod
 
 
-@pytest.mark.asyncio
 async def test_initiate_payment_success(
     client_user, normal_user, db_session_with_rollback
 ):
@@ -44,7 +42,6 @@ async def test_initiate_payment_success(
     assert data["payment_url"] == "https://stripe.com/pay/123"
 
 
-@pytest.mark.asyncio
 async def test_initiate_payment_booking_not_found(client_user):
     payload = {"booking_id": 999, "method": PaymentMethod.stripe}
 
@@ -61,7 +58,6 @@ async def test_initiate_payment_booking_not_found(client_user):
     assert response.json()["detail"] == "Booking not found or invalid"
 
 
-@pytest.mark.asyncio
 async def test_initiate_payment_not_allowed(client_user, normal_user):
     payload = {"booking_id": 1, "method": PaymentMethod.stripe}
 
@@ -81,7 +77,6 @@ async def test_initiate_payment_not_allowed(client_user, normal_user):
     assert response.json()["detail"] == "Cannot pay for this booking"
 
 
-@pytest.mark.asyncio
 async def test_initiate_payment_unauthorized(client_user):
     payload = {"booking_id": 1, "method": PaymentMethod.stripe}
 
@@ -101,14 +96,12 @@ async def test_initiate_payment_unauthorized(client_user):
     assert response.json()["detail"] == "Not authorized to pay for this booking"
 
 
-@pytest.mark.asyncio
 async def test_payment_success_page(client_user):
     response = await client_user.get("/payments/success")
     assert response.status_code == 200
     assert response.json() == {"message": "Payment succeeded. You can close this page."}
 
 
-@pytest.mark.asyncio
 async def test_payment_cancel_page(client_user):
     response = await client_user.get("/payments/cancel")
     assert response.status_code == 200

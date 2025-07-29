@@ -1,11 +1,12 @@
 from typing import Callable
 
-from app.core.security import decode_access_token
-from app.db.session import async_session
-from app.models.role import RoleEnum
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from fastapi_limiter.depends import RateLimiter
+
+from app.core.security import decode_access_token
+from app.db.session import async_session
+from app.models.role import RoleEnum
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="/users/login", scheme_name="JWT Authorization"

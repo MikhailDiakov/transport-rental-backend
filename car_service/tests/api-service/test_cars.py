@@ -1,8 +1,6 @@
-import pytest
 from app.models.car import Car
 
 
-@pytest.mark.asyncio
 async def test_create_car_success(client_admin):
     payload = {"brand": "Tesla", "model": "Model S", "year": 2023, "is_available": True}
     response = await client_admin.post("/cars/", json=payload)
@@ -15,21 +13,18 @@ async def test_create_car_success(client_admin):
     assert "id" in data
 
 
-@pytest.mark.asyncio
 async def test_create_car_forbidden(client_user):
     payload = {"brand": "Tesla", "model": "Model S", "year": 2023}
     response = await client_user.post("/cars/", json=payload)
     assert response.status_code == 403
 
 
-@pytest.mark.asyncio
 async def test_create_car_validation_error(client_admin):
     payload = {"model": "Model S", "year": 2023}
     response = await client_admin.post("/cars/", json=payload)
     assert response.status_code == 422
 
 
-@pytest.mark.asyncio
 async def test_get_car_success(db_session_with_rollback, client_admin):
     new_car = Car(
         brand="BMW",
@@ -53,13 +48,11 @@ async def test_get_car_success(db_session_with_rollback, client_admin):
     assert data["is_available"] is True
 
 
-@pytest.mark.asyncio
 async def test_get_car_not_found(client_user):
     response = await client_user.get("/cars/999999")
     assert response.status_code == 404
 
 
-@pytest.mark.asyncio
 async def test_list_cars_success(db_session_with_rollback, client_admin):
     cars = [
         Car(brand="Audi", model="A4", year=2021, is_available=True),
@@ -75,13 +68,11 @@ async def test_list_cars_success(db_session_with_rollback, client_admin):
     assert len(data) >= 2
 
 
-@pytest.mark.asyncio
 async def test_list_cars_not_found(client_admin):
     response = await client_admin.get("/cars/")
     assert response.status_code == 404
 
 
-@pytest.mark.asyncio
 async def test_update_car_success(db_session_with_rollback, client_admin):
     car = Car(
         brand="Toyota",
@@ -101,19 +92,16 @@ async def test_update_car_success(db_session_with_rollback, client_admin):
     assert data["year"] == 2019
 
 
-@pytest.mark.asyncio
 async def test_update_car_not_found(client_admin):
     response = await client_admin.put("/cars/999999", json={"model": "NonExist"})
     assert response.status_code == 404
 
 
-@pytest.mark.asyncio
 async def test_update_car_forbidden(client_user):
     response = await client_user.put("/cars/1", json={"model": "FailUpdate"})
     assert response.status_code == 403
 
 
-@pytest.mark.asyncio
 async def test_delete_car_success(db_session_with_rollback, client_admin):
     car = Car(
         brand="Ford",
@@ -132,13 +120,11 @@ async def test_delete_car_success(db_session_with_rollback, client_admin):
     assert deleted_car is None
 
 
-@pytest.mark.asyncio
 async def test_delete_car_forbidden(client_user):
     response = await client_user.delete("/cars/1")
     assert response.status_code == 403
 
 
-@pytest.mark.asyncio
 async def test_delete_car_not_found(client_admin):
     response = await client_admin.delete("/cars/999999")
     assert response.status_code == 404

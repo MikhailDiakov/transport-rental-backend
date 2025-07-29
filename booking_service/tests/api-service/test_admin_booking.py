@@ -1,12 +1,10 @@
 from datetime import date, timedelta
 from unittest.mock import AsyncMock, patch
 
-import pytest
 from app.models.booking import Booking
 from fastapi import status
 
 
-@pytest.mark.asyncio
 async def test_admin_create_booking_success(client_admin):
     today = date.today()
     payload = {
@@ -40,7 +38,6 @@ async def test_admin_create_booking_success(client_admin):
     assert data["total_price"] == 777.0
 
 
-@pytest.mark.asyncio
 async def test_admin_create_booking_user_not_found(client_admin):
     today = date.today()
     payload = {
@@ -62,7 +59,6 @@ async def test_admin_create_booking_user_not_found(client_admin):
     assert response.json()["detail"] == "User does not exist"
 
 
-@pytest.mark.asyncio
 async def test_admin_get_booking_success(client_admin, db_session_with_rollback):
     booking = Booking(
         user_id=10,
@@ -84,7 +80,6 @@ async def test_admin_get_booking_success(client_admin, db_session_with_rollback)
     assert data["user_id"] == 10
 
 
-@pytest.mark.asyncio
 async def test_admin_get_booking_not_found(client_admin):
     response = await client_admin.get("/admin/booking/999999")
 
@@ -92,7 +87,6 @@ async def test_admin_get_booking_not_found(client_admin):
     assert response.json()["detail"] == "Booking not found"
 
 
-@pytest.mark.asyncio
 async def test_admin_list_bookings(client_admin, db_session_with_rollback):
     booking = Booking(
         user_id=1,
@@ -113,7 +107,6 @@ async def test_admin_list_bookings(client_admin, db_session_with_rollback):
     assert any(b["id"] == booking.id for b in data["bookings"])
 
 
-@pytest.mark.asyncio
 async def test_admin_update_booking_success(client_admin, db_session_with_rollback):
     booking = Booking(
         user_id=10,
@@ -142,7 +135,6 @@ async def test_admin_update_booking_success(client_admin, db_session_with_rollba
     assert data["total_price"] == 123.0
 
 
-@pytest.mark.asyncio
 async def test_admin_update_booking_not_found(client_admin):
     response = await client_admin.put(
         "/admin/booking/999999", json={"status": "cancelled"}
@@ -152,7 +144,6 @@ async def test_admin_update_booking_not_found(client_admin):
     assert response.json()["detail"] == "Booking not found"
 
 
-@pytest.mark.asyncio
 async def test_admin_delete_booking_success(client_admin, db_session_with_rollback):
     booking = Booking(
         user_id=10,
@@ -180,7 +171,6 @@ async def test_admin_delete_booking_success(client_admin, db_session_with_rollba
     assert response.status_code == 204
 
 
-@pytest.mark.asyncio
 async def test_admin_delete_booking_not_found(client_admin):
     grpc_response = AsyncMock()
     grpc_response.success = True
@@ -197,7 +187,6 @@ async def test_admin_delete_booking_not_found(client_admin):
     assert response.json()["detail"] == "Booking not found or failed to delete"
 
 
-@pytest.mark.asyncio
 async def test_user_cannot_access_admin_booking_endpoints(client_user):
     today = date.today()
     payload = {

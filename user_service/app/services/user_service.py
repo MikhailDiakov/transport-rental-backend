@@ -1,6 +1,10 @@
 import secrets
 from typing import Optional
 
+from fastapi import HTTPException, Request
+from fastapi.responses import JSONResponse
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.config import settings
 from app.core.hash import get_password_hash, verify_password
 from app.core.security import (
@@ -25,9 +29,6 @@ from app.utils.selectors.user import (
     get_user_by_id,
     get_user_by_username,
 )
-from fastapi import HTTPException, Request
-from fastapi.responses import JSONResponse
-from sqlalchemy.ext.asyncio import AsyncSession
 
 SERVICE = settings.PROJECT_NAME
 

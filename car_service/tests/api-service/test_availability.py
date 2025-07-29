@@ -1,11 +1,9 @@
 from datetime import date, timedelta
 
-import pytest
 from app.models.availability import CarAvailability
 from app.models.car import Car
 
 
-@pytest.mark.asyncio
 async def test_create_availability_success(db_session_with_rollback, client_admin):
     car = Car(brand="Tesla", model="Model 3", year=2021, is_available=True)
     db_session_with_rollback.add(car)
@@ -29,7 +27,6 @@ async def test_create_availability_success(db_session_with_rollback, client_admi
     assert "id" in data
 
 
-@pytest.mark.asyncio
 async def test_create_availability_for_unavailable_car(
     db_session_with_rollback, client_admin
 ):
@@ -52,7 +49,6 @@ async def test_create_availability_for_unavailable_car(
     assert response.json()["detail"] == "Cannot add availability for an unavailable car"
 
 
-@pytest.mark.asyncio
 async def test_create_availability_overlap(db_session_with_rollback, client_admin):
     car = Car(brand="BMW", model="X3", year=2020, is_available=True)
     db_session_with_rollback.add(car)
@@ -79,7 +75,6 @@ async def test_create_availability_overlap(db_session_with_rollback, client_admi
     assert "overlap" in response.json()["detail"].lower()
 
 
-@pytest.mark.asyncio
 async def test_get_availability_success(db_session_with_rollback, client_admin):
     car = Car(brand="Honda", model="Civic", year=2018, is_available=True)
     db_session_with_rollback.add(car)
@@ -103,13 +98,11 @@ async def test_get_availability_success(db_session_with_rollback, client_admin):
     assert data["car_id"] == car.id
 
 
-@pytest.mark.asyncio
 async def test_get_availability_not_found(client_user):
     response = await client_user.get("/cars-availability/9999999")
     assert response.status_code == 404
 
 
-@pytest.mark.asyncio
 async def test_list_availabilities_success(db_session_with_rollback, client_admin):
     car = Car(brand="Ford", model="Focus", year=2017, is_available=True)
     db_session_with_rollback.add(car)
@@ -140,13 +133,11 @@ async def test_list_availabilities_success(db_session_with_rollback, client_admi
     assert len(data) >= 2
 
 
-@pytest.mark.asyncio
 async def test_list_availabilities_not_found(client_admin):
     response = await client_admin.get("/cars-availability/")
     assert response.status_code == 404
 
 
-@pytest.mark.asyncio
 async def test_update_availability_success(db_session_with_rollback, client_admin):
     car = Car(brand="Kia", model="Rio", year=2019, is_available=True)
     db_session_with_rollback.add(car)
@@ -172,14 +163,12 @@ async def test_update_availability_success(db_session_with_rollback, client_admi
     assert data["price_per_day"] == 20.0
 
 
-@pytest.mark.asyncio
 async def test_update_availability_not_found(client_admin):
     update_payload = {"price_per_day": 100.0}
     response = await client_admin.put("/cars-availability/999999", json=update_payload)
     assert response.status_code == 404
 
 
-@pytest.mark.asyncio
 async def test_update_availability_forbidden(client_user):
     response = await client_user.put(
         "/cars-availability/1", json={"price_per_day": 100}
@@ -187,7 +176,6 @@ async def test_update_availability_forbidden(client_user):
     assert response.status_code == 403
 
 
-@pytest.mark.asyncio
 async def test_delete_availability_success(db_session_with_rollback, client_admin):
     car = Car(brand="Mazda", model="3", year=2020, is_available=True)
     db_session_with_rollback.add(car)
@@ -211,13 +199,11 @@ async def test_delete_availability_success(db_session_with_rollback, client_admi
     assert deleted is None
 
 
-@pytest.mark.asyncio
 async def test_delete_availability_forbidden(client_user):
     response = await client_user.delete("/cars-availability/1")
     assert response.status_code == 403
 
 
-@pytest.mark.asyncio
 async def test_delete_availability_not_found(client_admin):
     response = await client_admin.delete("/cars-availability/999999")
     assert response.status_code == 404

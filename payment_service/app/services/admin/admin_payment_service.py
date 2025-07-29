@@ -1,9 +1,10 @@
 from typing import Optional
 
-from app.models.payment import Payment
-from app.utils.kafka_producer import send_log
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.models.payment import Payment
+from app.utils.kafka_producer import send_log
 
 SERVICE = "payment_service"
 

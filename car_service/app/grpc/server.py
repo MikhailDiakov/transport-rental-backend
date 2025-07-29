@@ -1,16 +1,16 @@
 import traceback
 from datetime import datetime, timedelta
 
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import async_sessionmaker
+
+import grpc
 from app.core.config import settings
 from app.db.session import engine
 from app.grpc import car_booking_pb2, car_booking_pb2_grpc
 from app.models.availability import CarAvailability
 from app.utils.kafka_producer import send_log
 from app.utils.selectors.car import get_car_by_id
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import async_sessionmaker
-
-import grpc
 
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 SERVICE = f"{settings.PROJECT_NAME}_grpc"

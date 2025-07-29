@@ -1,5 +1,8 @@
 from datetime import date
 
+from sqlalchemy import and_, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.config import settings
 from app.models.booking import Booking
 from app.utils.grpc import (
@@ -8,8 +11,6 @@ from app.utils.grpc import (
     restore_availability_via_grpc,
 )
 from app.utils.kafka_producer import send_log, send_notification_email
-from sqlalchemy import and_, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 SERVICE = settings.PROJECT_NAME
 

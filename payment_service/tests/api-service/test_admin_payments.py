@@ -1,12 +1,10 @@
 from datetime import UTC, datetime
 
-import pytest
 from app.models.payment import Payment
 from app.schemas.payment import PaymentStatus
 from fastapi import status
 
 
-@pytest.mark.asyncio
 async def test_admin_list_payments(client_admin, db_session_with_rollback):
     payment = Payment(
         booking_id=1,
@@ -30,7 +28,6 @@ async def test_admin_list_payments(client_admin, db_session_with_rollback):
     assert any(p["id"] == payment.id for p in data)
 
 
-@pytest.mark.asyncio
 async def test_admin_get_payment_success(client_admin, db_session_with_rollback):
     payment = Payment(
         booking_id=1,
@@ -54,14 +51,12 @@ async def test_admin_get_payment_success(client_admin, db_session_with_rollback)
     assert data["status"] == "pending"
 
 
-@pytest.mark.asyncio
 async def test_admin_get_payment_not_found(client_admin):
     response = await client_admin.get("/admin/payments/999999")
     assert response.status_code == 404
     assert response.json()["detail"] == "Payment not found"
 
 
-@pytest.mark.asyncio
 async def test_admin_update_payment_status_success(
     client_admin, db_session_with_rollback
 ):
@@ -90,7 +85,6 @@ async def test_admin_update_payment_status_success(
     assert data["status"] == "cancelled"
 
 
-@pytest.mark.asyncio
 async def test_admin_update_payment_status_not_found(client_admin):
     update_payload = {"status": "failed"}
 
@@ -100,7 +94,6 @@ async def test_admin_update_payment_status_not_found(client_admin):
     assert response.json()["detail"] == "Payment not found"
 
 
-@pytest.mark.asyncio
 async def test_user_cannot_access_admin_payment_endpoints(client_user):
     endpoints = [
         ("get", "/admin/payments/"),
